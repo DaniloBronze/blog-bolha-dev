@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
@@ -19,8 +21,130 @@
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+html {
+  scroll-behavior: smooth;
 }
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+body {
+  background: linear-gradient(-45deg, #000000, #1e40af, #000000, #2563eb);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+  min-height: 100vh;
+  color: white;
+}
+
+/* Ajustando cores do texto para melhor contraste com o fundo escuro */
+.bg-white {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.text-gray-800 {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.text-gray-600 {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Ajustando a navegação */
+nav.bg-white {
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* Ajustando o footer */
+footer.bg-gray-800 {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.gradient-text {
+  background: linear-gradient(-45deg, #000000, #1e40af, #000000, #2563eb);
+  background-size: 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient 5s ease infinite;
+}
+
+/* Estilos para o conteúdo Markdown */
+.prose {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  color: white !important;
+  font-weight: 700;
+}
+
+.prose strong {
+  color: white !important;
+}
+
+.prose a {
+  color: #93c5fd !important;
+  text-decoration: underline;
+}
+
+.prose a:hover {
+  color: #60a5fa !important;
+}
+
+.prose ul,
+.prose ol {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.prose blockquote {
+  color: rgba(255, 255, 255, 0.7) !important;
+  border-left-color: #60a5fa !important;
+}
+
+.prose code {
+  color: #93c5fd !important;
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  padding: 0.2em 0.4em;
+  border-radius: 0.375rem;
+}
+
+.prose pre {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.prose pre code {
+  background-color: transparent !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.prose hr {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.prose table {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.prose th,
+.prose td {
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
