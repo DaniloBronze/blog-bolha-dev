@@ -1,13 +1,16 @@
 'use client'
-
+import { usePathname, redirect } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { redirect, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { FaNewspaper, FaComments, FaChartBar, FaSignOutAlt } from 'react-icons/fa'
 import { signOut } from 'next-auth/react'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  // Se estiver na página de login, não aplica layout
+  if (pathname === '/admin/login') {
+    return <>{children}</>
+  }
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
@@ -15,10 +18,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     },
   })
 
-  // Se estiver na página de login, não aplica layout
-  if (pathname === '/admin/login') {
-    return <>{children}</>
-  }
 
   return (
     <div className="min-h-screen flex bg-gray-900">
