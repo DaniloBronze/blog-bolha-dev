@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "setup-admin": "tsx scripts/setup-admin.ts",
+    "criar-admin": "tsx scripts/setup-admin.ts",
     "vercel-build": "prisma generate && prisma migrate deploy && next build"
   },
   "dependencies": {
