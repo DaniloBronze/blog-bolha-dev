@@ -51,7 +51,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     return {
       slug: post.slug,
       title: post.title,
-      id: post.id,
+      id: Number(post.id),
       date: post.publishedAt?.toISOString() || '',
       description: post.description,
       tags: JSON.parse(post.tags || '[]'),
