@@ -1,7 +1,9 @@
+// Arquivo com erro: (provavelmente algo como /api/comments/route.ts)
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../auth/[...nextauth]/route'
+// Importe do novo local
+import { authOptions } from '@/lib/auth-options'
 
 export async function GET() {
   try {

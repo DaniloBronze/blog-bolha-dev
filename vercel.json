@@ -1,9 +1,9 @@
 {
   "build": {
     "env": {
-      "DATABASE_URL": "@database_url",
-      "NEXTAUTH_SECRET": "@nextauth_secret",
-      "NEXTAUTH_URL": "@nextauth_url"
+      "DATABASE_URL": "postgresql://neondb_owner:npg_F3gnYpSbL8IM@ep-bold-mud-a5u9db4p-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require",
+      "NEXTAUTH_SECRET": "a2ff0196d173f6e92a7e9d302215423ddd4c30f3f5d2ab962f761a17d346393d",
+      "NEXTAUTH_URL": "https://blog-bolha-dev.vercel.app/"
     }
   },
   "routes": [
