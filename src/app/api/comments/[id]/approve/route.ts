@@ -13,14 +13,15 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const id = Number(params.id);
     const comment = await prisma.comment.update({
       where: {
-        id: params.id,
+        id,
       },
       data: {
         approved: true,
       },
-    })
+    });
 
     return NextResponse.json(comment)
   } catch (error) {
