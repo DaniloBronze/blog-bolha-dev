@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { headers } from 'next/headers'
 
 export const dynamic = 'force-dynamic'  // <- Desativa cache da API
+export const revalidate = 60 // 1 minuto
 
 export async function GET(
   request: Request,
@@ -11,7 +12,7 @@ export async function GET(
   try {
     const likesCount = await prisma.like.count({
       where: {
-        postId: params.postId,
+        postId: Number(params.postId),
       },
     })
 
@@ -35,7 +36,7 @@ export async function POST(
 
     const existingLike = await prisma.like.findFirst({
       where: {
-        postId: params.postId,
+        postId: Number(params.postId),
         ipAddress: ip,
       },
     })
@@ -51,7 +52,7 @@ export async function POST(
 
     await prisma.like.create({
       data: {
-        postId: params.postId,
+        postId: Number(params.postId),
         ipAddress: ip,
       },
     })

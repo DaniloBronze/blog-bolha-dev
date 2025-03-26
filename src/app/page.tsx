@@ -4,6 +4,9 @@ import { SiNextdotjs, SiTypescript, SiTailwindcss, SiPostgresql } from 'react-ic
 import Sidebar from '@/components/Sidebar'
 import { getRecentPosts } from '@/lib/posts'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function Home() {
   const recentPosts = await getRecentPosts(3)
 

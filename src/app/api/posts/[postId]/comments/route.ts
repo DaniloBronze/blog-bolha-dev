@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   request: Request,
   { params }: { params: { postId: string } }
@@ -8,7 +10,7 @@ export async function GET(
   try {
     const comments = await prisma.comment.findMany({
       where: {
-        postId: params.postId,
+        postId: Number(params.postId),
         approved: true,
       },
       orderBy: {
@@ -39,7 +41,7 @@ export async function POST(
         content,
         authorName,
         authorEmail,
-        postId: params.postId,
+        postId: Number(params.postId),
       },
     })
 

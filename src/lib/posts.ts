@@ -49,14 +49,14 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 
     // A contagem de likes será acessada através de post._count.likes
     return {
-      slug: post.slug,
-      title: post.title,
+      slug: post.slug || '',
+      title: post.title || '',
       id: Number(post.id),
       date: post.publishedAt?.toISOString() || '',
-      description: post.description,
+      description: post.description || '',
       tags: JSON.parse(post.tags || '[]'),
-      content: contentHtml,
-      likes: post._count.likes, // Aqui acessa a contagem de likes
+      content: contentHtml || '',
+      likes: post._count?.likes || 0,
     }
   } catch (error) {
     console.error('Erro ao buscar post:', error)
@@ -85,12 +85,14 @@ export async function getAllPosts(): Promise<Post[]> {
       const contentHtml = processedContent.toString()
 
       return {
-        slug: post.slug,
-        title: post.title,
+        slug: post.slug || '',
+        title: post.title || '',
+        id: Number(post.id),
         date: post.publishedAt?.toISOString() || '',
-        description: post.description,
+        description: post.description || '',
         tags: JSON.parse(post.tags || '[]'),
-        content: contentHtml,
+        content: contentHtml || '',
+        likes: post._count?.likes || 0,
       }
     }))
   } catch (error) {
@@ -107,6 +109,13 @@ export async function getRecentPosts(count: number = 5): Promise<Post[]> {
         publishedAt: 'desc',
       },
       take: count,
+      include: {
+        _count: {
+          select: {
+            likes: true, // Contando os likes associados ao post
+          },
+        },
+      },
     })
 
     return Promise.all(posts.map(async (post: any) => {
@@ -117,12 +126,14 @@ export async function getRecentPosts(count: number = 5): Promise<Post[]> {
       const contentHtml = processedContent.toString()
 
       return {
-        slug: post.slug,
-        title: post.title,
+        slug: post.slug || '',
+        title: post.title || '',
+        id: Number(post.id),
         date: post.publishedAt?.toISOString() || '',
-        description: post.description,
+        description: post.description || '',
         tags: JSON.parse(post.tags || '[]'),
-        content: contentHtml,
+        content: contentHtml || '',
+        likes: post._count?.likes || 0,
       }
     }))
   } catch (error) {
@@ -157,7 +168,15 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
   const normalizedSearchTag = normalizeTag(tag)
 
   try {
-    const posts = await prisma.post.findMany()
+    const posts = await prisma.post.findMany({
+      include: {
+        _count: {
+          select: {
+            likes: true, // Contando os likes associados ao post
+          },
+        },
+      },
+    })
 
     const filteredPosts = posts.filter((post: any) => {
       const tagsArray = JSON.parse(post.tags || '[]')
@@ -172,12 +191,14 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
       const contentHtml = processedContent.toString()
 
       return {
-        slug: post.slug,
-        title: post.title,
+        slug: post.slug || '',
+        title: post.title || '',
+        id: Number(post.id),
         date: post.publishedAt?.toISOString() || '',
-        description: post.description,
+        description: post.description || '',
         tags: JSON.parse(post.tags || '[]'),
-        content: contentHtml,
+        content: contentHtml || '',
+        likes: post._count?.likes || 0,
       }
     }))
   } catch (error) {

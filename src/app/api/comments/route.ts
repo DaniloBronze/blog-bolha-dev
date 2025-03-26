@@ -5,6 +5,8 @@ import { getServerSession } from 'next-auth'
 // Importe do novo local
 import { authOptions } from '@/lib/auth-options'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)

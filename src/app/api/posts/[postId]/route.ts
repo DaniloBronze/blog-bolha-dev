@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 export async function DELETE(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: { postId: string } }
 ) {
-  const { slug } = params
-
   try {
     await prisma.post.delete({
-      where: { id: slug },
+      where: { id: Number(params.postId) },
     })
 
     return NextResponse.json({ success: true })
@@ -28,7 +28,7 @@ export async function GET(
 ) {
   try {
     const post = await prisma.post.findUnique({
-      where: { id: params.postId },
+      where: { id: Number(params.postId) },
       include: {
         comments: true,
         likes: true
@@ -59,7 +59,7 @@ export async function PUT(
   
   try {
     const updatedPost = await prisma.post.update({
-      where: { id: params.postId },
+      where: { id: Number(params.postId) },
       data: {
         title: body.title,
         description: body.description,

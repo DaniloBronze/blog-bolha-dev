@@ -15,7 +15,7 @@ export async function DELETE(
 
     await prisma.comment.delete({
       where: {
-        id: params.id,
+        id: Number(params.id),
       },
     })
 

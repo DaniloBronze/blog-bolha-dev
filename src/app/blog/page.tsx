@@ -3,6 +3,9 @@ import Link from 'next/link'
 import { FaCalendar, FaTags } from 'react-icons/fa'
 import Sidebar from '@/components/Sidebar'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata = {
   title: 'Blog',
   description: 'Meus posts sobre programação e tecnologia',
