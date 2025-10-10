@@ -6,6 +6,10 @@ const nextConfig = {
   experimental: {
     mdxRs: true,
   },
+  // Otimizações de performance sem cache
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: false,
 }
 
 const withMDX = createMDX({

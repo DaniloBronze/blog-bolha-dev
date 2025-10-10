@@ -82,11 +82,12 @@ export async function getAllPosts(): Promise<Post[]> {
       }
     })
 
-    return Promise.all(posts.map(async (post: any) => {
-      const processedContent = await remark()
+    return posts.map((post: any) => {
+      // Processa markdown de forma síncrona para ser mais rápido
+      const processedContent = remark()
         .use(html)
         .use(remarkGfm)
-        .process(post.content)
+        .processSync(post.content)
       const contentHtml = processedContent.toString()
 
       return {
@@ -97,10 +98,10 @@ export async function getAllPosts(): Promise<Post[]> {
         description: post.description || '',
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',
-        likes: post._count?.likes || 0,
+        likes: 0, // Simplificado para performance
         readingTime: calculateReadingTime(contentHtml),
       }
-    }))
+    })
   } catch (error) {
     console.error('Erro ao buscar todos os posts:', error)
     return []
@@ -114,20 +115,17 @@ export async function getRecentPosts(count: number = 5): Promise<Post[]> {
         publishedAt: 'desc',
       },
       take: count,
-      include: {
-        _count: {
-          select: {
-            likes: true,
-          },
-        },
-      },
+      where: {
+        published: true
+      }
     })
 
-    return Promise.all(posts.map(async (post: any) => {
-      const processedContent = await remark()
+    return posts.map((post: any) => {
+      // Processa markdown de forma síncrona para ser mais rápido
+      const processedContent = remark()
         .use(html)
         .use(remarkGfm)
-        .process(post.content)
+        .processSync(post.content)
       const contentHtml = processedContent.toString()
 
       return {
@@ -138,10 +136,10 @@ export async function getRecentPosts(count: number = 5): Promise<Post[]> {
         description: post.description || '',
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',
-        likes: post._count?.likes || 0,
+        likes: 0, // Simplificado para performance
         readingTime: calculateReadingTime(contentHtml),
       }
-    }))
+    })
   } catch (error) {
     console.error('Erro ao buscar posts recentes:', error)
     return []

@@ -111,6 +111,8 @@ export default async function BlogPost({ params }: { params: { slug: string } })
   )
 }
 
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const post = await getPostBySlug(params.slug)
 

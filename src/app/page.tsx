@@ -1,101 +1,107 @@
 import Link from 'next/link'
-import { FaArrowRight, FaReact, FaNodeJs, FaDocker, FaGitAlt, FaPhp, FaAws, FaJs } from 'react-icons/fa'
-import { SiNextdotjs, SiTypescript, SiTailwindcss, SiPostgresql } from 'react-icons/si'
+import { FaCalendar, FaClock, FaTags, FaArrowRight } from 'react-icons/fa'
 import Sidebar from '@/components/Sidebar'
-import { getRecentPosts } from '@/lib/posts'
+import { getRecentPosts, getAllTags } from '@/lib/posts'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
 
 export default async function Home() {
-  const recentPosts = await getRecentPosts(3)
-
-  const technologies = [
-    { name: 'React', icon: FaReact, color: '#61DAFB' },
-    { name: 'Next.js', icon: SiNextdotjs, color: '#000000' },
-    { name: 'TypeScript', icon: SiTypescript, color: '#3178C6' },
-    { name: 'JavaScript', icon: FaJs, color: '#F7DF1E' },
-    { name: 'Node.js', icon: FaNodeJs, color: '#339933' },
-    { name: 'PHP', icon: FaPhp, color: '#777BB4' },
-    { name: 'Tailwind CSS', icon: SiTailwindcss, color: '#06B6D4' },
-    { name: 'PostgreSQL', icon: SiPostgresql, color: '#4169E1' },
-    { name: 'Docker', icon: FaDocker, color: '#2496ED' },
-    { name: 'AWS', icon: FaAws, color: '#FF9900' },
-    { name: 'Git', icon: FaGitAlt, color: '#F05032' }
-  ]
+  const recentPosts = await getRecentPosts(6)
+  const tags = await getAllTags()
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex flex-col lg:flex-row lg:gap-8">
         <main className="flex-1">
-          <section className="text-center py-12">
-            <h1 className="text-5xl font-bold mb-6 text-white">
-              Olá, eu sou <span className="text-blue-300">Danilo Silva</span>
+          {/* <section className="mb-8">
+            <h1 className="text-4xl font-bold text-white mb-4">
+              Blog do <span className="text-blue-300">Danilo Silva</span>
             </h1>
-            <p className="text-xl mb-8 text-white/80">
-              Desenvolvedor Full Stack apaixonado por criar soluções inovadoras
+            <p className="text-lg text-white/80 mb-6">
+              Artigos sobre desenvolvimento, tecnologia e programação
             </p>
-            <div className="flex justify-center space-x-4">
-              <Link
-                href="/blog"
-                className="bg-blue-600/30 text-white px-6 py-3 rounded-lg hover:bg-blue-500/40 transition-colors flex items-center backdrop-blur-sm border border-blue-400/30"
-              >
-                Leia meu blog
-                <FaArrowRight className="ml-2" />
-              </Link>
-            </div>
-          </section>
+            <Link
+              href="/sobre"
+              className="inline-flex items-center text-blue-300 hover:text-blue-200 transition-colors"
+            >
+              Sobre mim <FaArrowRight className="ml-2" />
+            </Link>
+          </section> */}
 
-          <section className="mt-16">
-            <h2 className="text-3xl font-bold text-white mb-6">Projetos Recentes</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-colors">
-                <h3 className="text-xl font-bold text-white mb-2">Projeto 1</h3>
-                <p className="text-white/70 mb-4">
-                  Descrição breve do projeto e suas principais tecnologias.
-                </p>
-                <a
-                  href="#"
-                  className="text-blue-300 hover:text-blue-200 flex items-center"
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-6">Posts Recentes</h2>
+            <div className="space-y-6">
+              {recentPosts.map((post) => (
+                <article
+                  key={post.slug}
+                  className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/10 hover:bg-white/20 transition-colors"
                 >
-                  Ver projeto <FaArrowRight className="ml-2" />
-                </a>
-              </div>
-              <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-colors">
-                <h3 className="text-xl font-bold text-white mb-2">Projeto 2</h3>
-                <p className="text-white/70 mb-4">
-                  Descrição breve do projeto e suas principais tecnologias.
-                </p>
-                <a
-                  href="#"
-                  className="text-blue-300 hover:text-blue-200 flex items-center"
-                >
-                  Ver projeto <FaArrowRight className="ml-2" />
-                </a>
-              </div>
-            </div>
-          </section>
+                  <div className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <h3 className="text-xl font-bold text-white hover:text-blue-300 transition-colors">
+                        <Link href={`/blog/${post.slug}`}>
+                          {post.title}
+                        </Link>
+                      </h3>
+                    </div>
 
-          <section className="mt-16 mb-16">
-            <h2 className="text-3xl font-bold text-white mb-6">Tecnologias</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {technologies.map((tech) => (
-                <div
-                  key={tech.name}
-                  className="bg-white/10 p-6 rounded-lg backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-colors text-center group"
-                >
-                  <tech.icon 
-                    className="w-12 h-12 mx-auto mb-3 transition-transform group-hover:scale-110" 
-                    style={{ color: tech.color }}
-                  />
-                  <span className="text-white/90">{tech.name}</span>
-                </div>
+                    <p className="text-white/70 mb-4 line-clamp-3">
+                      {post.description}
+                    </p>
+
+                    <div className="flex flex-wrap items-center text-sm text-white/60 mb-4 gap-4">
+                      <span className="flex items-center">
+                        <FaCalendar className="mr-2" />
+                        {new Date(post.date).toLocaleDateString('pt-BR')}
+                      </span>
+                      <span className="flex items-center">
+                        <FaClock className="mr-2" />
+                        {post.readingTime.text}
+                      </span>
+                      {post.tags.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <FaTags className="mr-1" />
+                          {post.tags.slice(0, 3).map((tag) => (
+                            <Link
+                              key={tag}
+                              href={`/blog/tag/${tag}`}
+                              className="bg-white/10 hover:bg-white/20 text-white/90 px-2 py-1 rounded-full text-xs transition-colors"
+                            >
+                              {tag}
+                            </Link>
+                          ))}
+                          {post.tags.length > 3 && (
+                            <span className="text-white/60">+{post.tags.length - 3}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <Link
+                      href={`/blog/${post.slug}`}
+                      className="inline-flex items-center text-blue-300 hover:text-blue-200 transition-colors"
+                    >
+                      Ler mais <FaArrowRight className="ml-2" />
+                    </Link>
+                  </div>
+                </article>
               ))}
             </div>
+
+            {recentPosts.length > 0 && (
+              <div className="mt-8 text-center">
+                <Link
+                  href="/blog"
+                  className="bg-blue-600/30 text-white px-6 py-3 rounded-lg hover:bg-blue-500/40 transition-colors flex items-center justify-center backdrop-blur-sm border border-blue-400/30 inline-flex"
+                >
+                  Ver todos os posts <FaArrowRight className="ml-2" />
+                </Link>
+              </div>
+            )}
           </section>
         </main>
 
-        <Sidebar recentPosts={recentPosts} />
+        <Sidebar recentPosts={recentPosts.slice(0, 5)} tags={tags} />
       </div>
     </div>
   )

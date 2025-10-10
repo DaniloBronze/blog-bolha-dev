@@ -52,6 +52,16 @@ export default function Navigation() {
             >
               Blog
             </Link>
+            <Link
+              href="/sobre"
+              className={`py-4 px-2 ${
+                pathname.startsWith('/sobre')
+                  ? 'text-blue-300 border-b-2 border-blue-300'
+                  : 'text-white hover:text-blue-300'
+              }`}
+            >
+              Sobre
+            </Link>
             {!loading && session && (
               <Link
                 href="/admin/dashboard"
