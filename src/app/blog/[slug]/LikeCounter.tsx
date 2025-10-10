@@ -5,7 +5,7 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 export default function LikeCounter({ postId }: { postId: string }) {
   const { data: likesData } = useSWR(`/api/posts/${postId}/likes`, fetcher, {
-    refreshInterval: 1000
+    refreshInterval: 5000 * 60
   })
 
   return (

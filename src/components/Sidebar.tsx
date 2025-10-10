@@ -1,13 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { FaCalendar } from 'react-icons/fa'
+import { FaCalendar, FaClock } from 'react-icons/fa'
 
 interface Post {
   slug: string
   title: string
   date: string
   tags: string[]
+  readingTime: {
+    minutes: number
+    text: string
+  }
 }
 
 interface SidebarProps {
@@ -34,6 +38,10 @@ export default function Sidebar({ recentPosts, tags, currentTag }: SidebarProps)
                 <div className="flex items-center text-sm text-white/60 mt-1">
                   <FaCalendar className="mr-2" />
                   {new Date(post.date).toLocaleDateString('pt-BR')}
+                </div>
+                <div className="flex items-center text-sm text-white/60 mt-1">
+                  <FaClock className="mr-2" />
+                  {post.readingTime.text}
                 </div>
               </Link>
             </div>

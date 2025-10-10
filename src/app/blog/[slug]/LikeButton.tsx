@@ -11,7 +11,7 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 export default function LikeButton({ postId }: { postId: string }) {
   const [loading, setLoading] = useState(false)
   const { data, mutate } = useSWR(`/api/posts/${postId}/likes`, fetcher, {
-    refreshInterval: 1000 // Atualiza a cada 1 segundo
+    refreshInterval: 5000 * 60 // Atualiza a cada 1min
   })
 
   const handleLike = async () => {
@@ -25,7 +25,7 @@ export default function LikeButton({ postId }: { postId: string }) {
       } else {
         alertsMsg('info', 'Like removido')
       }
-      mutate() // Força a revalidação dos dados
+      mutate() // Força a revalidação dos dados de 1min
     } catch {
       alertsMsg('error', 'Erro ao registrar like. Tente novamente.')
     } finally {

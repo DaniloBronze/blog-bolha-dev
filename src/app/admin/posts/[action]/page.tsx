@@ -139,9 +139,9 @@ export default function PostEditorPage({
 
             {/* Tags */}
             <div>
-              <label htmlFor="tags" className="block text-sm font-medium text-white/90 mb-1">
-                Tags
-              </label>
+                <label htmlFor="tags" className="block text-sm font-medium text-white/90 mb-1">
+                  Tags
+                </label>
               <div className="flex items-center space-x-2">
                 <FaTags className="text-white/50" />
                 <input
@@ -149,10 +149,22 @@ export default function PostEditorPage({
                   id="tags"
                   placeholder="Separe as tags com vírgula"
                   value={formData.tags.join(', ')}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
-                  })}
+                  onChange={(e) => {
+                    const tagsValue = e.target.value
+                    const tagsArray = tagsValue ? tagsValue.split(',').map(tag => tag.trim()) : []
+                    setFormData({
+                      ...formData,
+                      tags: tagsArray
+                    })
+                  }}
+                  onBlur={(e) => {
+                    const tagsValue = e.target.value
+                    const tagsArray = tagsValue ? tagsValue.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : []
+                    setFormData({
+                      ...formData,
+                      tags: tagsArray
+                    })
+                  }}
                   className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>

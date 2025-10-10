@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { remark } from 'remark'
 import html from 'remark-html'
 import remarkGfm from 'remark-gfm'
+import { calculateReadingTime } from '@/utils/reading-time'
 
 export interface Post {
   slug: string
@@ -12,6 +13,10 @@ export interface Post {
   content: string
   id: number
   likes: number
+  readingTime: {
+    minutes: number
+    text: string
+  }
 }
 
 export function normalizeTag(tag: string): string {
@@ -25,7 +30,6 @@ export function normalizeTag(tag: string): string {
     .replace(/^-+|-+$/g, ''); // Remove hífens no início e no final
 }
 
-// ✅ Buscar post pelo slug
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
     const post = await prisma.post.findUnique({
@@ -47,7 +51,8 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
       .process(post.content)
     const contentHtml = processedContent.toString()
 
-    // A contagem de likes será acessada através de post._count.likes
+    const readingTime = calculateReadingTime(contentHtml)
+
     return {
       slug: post.slug || '',
       title: post.title || '',
@@ -57,6 +62,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
       tags: JSON.parse(post.tags || '[]'),
       content: contentHtml || '',
       likes: post._count?.likes || 0,
+      readingTime,
     }
   } catch (error) {
     console.error('Erro ao buscar post:', error)
@@ -65,7 +71,6 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 }
 
 
-// ✅ Buscar todos os posts
 export async function getAllPosts(): Promise<Post[]> {
   try {
     const posts = await prisma.post.findMany({
@@ -93,6 +98,7 @@ export async function getAllPosts(): Promise<Post[]> {
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',
         likes: post._count?.likes || 0,
+        readingTime: calculateReadingTime(contentHtml),
       }
     }))
   } catch (error) {
@@ -101,7 +107,6 @@ export async function getAllPosts(): Promise<Post[]> {
   }
 }
 
-// ✅ Buscar posts recentes
 export async function getRecentPosts(count: number = 5): Promise<Post[]> {
   try {
     const posts = await prisma.post.findMany({
@@ -112,7 +117,7 @@ export async function getRecentPosts(count: number = 5): Promise<Post[]> {
       include: {
         _count: {
           select: {
-            likes: true, // Contando os likes associados ao post
+            likes: true,
           },
         },
       },
@@ -134,6 +139,7 @@ export async function getRecentPosts(count: number = 5): Promise<Post[]> {
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',
         likes: post._count?.likes || 0,
+        readingTime: calculateReadingTime(contentHtml),
       }
     }))
   } catch (error) {
@@ -142,7 +148,6 @@ export async function getRecentPosts(count: number = 5): Promise<Post[]> {
   }
 }
 
-// ✅ Buscar todas as tags
 export async function getAllTags(): Promise<string[]> {
   try {
     const posts = await prisma.post.findMany({
@@ -163,7 +168,6 @@ export async function getAllTags(): Promise<string[]> {
   }
 }
 
-// ✅ Buscar posts por tag
 export async function getPostsByTag(tag: string): Promise<Post[]> {
   const normalizedSearchTag = normalizeTag(tag)
 
@@ -172,7 +176,7 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
       include: {
         _count: {
           select: {
-            likes: true, // Contando os likes associados ao post
+            likes: true,
           },
         },
       },
@@ -199,6 +203,7 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',
         likes: post._count?.likes || 0,
+        readingTime: calculateReadingTime(contentHtml),
       }
     }))
   } catch (error) {

@@ -1,5 +1,5 @@
 import { getPostBySlug, getAllPosts, getAllTags } from '@/lib/posts'
-import { FaCalendar, FaTags } from 'react-icons/fa'
+import { FaCalendar, FaTags, FaClock } from 'react-icons/fa'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Sidebar from '@/components/Sidebar'
@@ -38,6 +38,10 @@ export default async function BlogPost({ params }: { params: { slug: string } })
                 <span className="mr-4 flex items-center">
                   <FaCalendar className="mr-2" />
                   {new Date(post.date).toLocaleDateString('pt-BR')}
+                </span>
+                <span className="mr-4 flex items-center">
+                  <FaClock className="mr-2" />
+                  {post.readingTime.text}
                 </span>
                 {post.tags.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2">
