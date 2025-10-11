@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { FaSave, FaClock, FaTags } from 'react-icons/fa'
+import ImageUpload from '@/components/ImageUpload'
 
 const MDEditor = dynamic(
   () => import('@uiw/react-md-editor').then((mod) => mod.default),
@@ -127,6 +128,19 @@ export default function PostEditorPage({
               <label className="block text-sm font-medium text-white/90 mb-1">
                 Conteúdo
               </label>
+              
+              {/* Upload de Imagem */}
+              <div className="mb-3">
+                <ImageUpload 
+                  onImageUpload={(url) => {
+                    const currentContent = formData.content || ''
+                    const imageMarkdown = `![Imagem](${url})`
+                    const newContent = imageMarkdown + (currentContent ? '\n\n' + currentContent : '')
+                    setFormData({ ...formData, content: newContent })
+                  }}
+                />
+              </div>
+              
               <div data-color-mode="dark">
                 <MDEditor
                   value={formData.content}

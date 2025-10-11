@@ -25,6 +25,7 @@
     "@types/mdx": "^2.0.13",
     "@uiw/react-md-editor": "^4.0.5",
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.7.0",
     "framer-motion": "^12.5.0",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.11.1",

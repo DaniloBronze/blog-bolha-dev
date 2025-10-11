@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { FaSave, FaTimes } from 'react-icons/fa'
 import { alertsMsg } from '@/utils/alerts'
+import ImageUpload from '@/components/ImageUpload'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 import MDEditor from '@uiw/react-md-editor'
@@ -154,6 +155,19 @@ export default function EditPost({ params }: { params: { id: string } }) {
           <label htmlFor="content" className="block text-sm font-medium">
             Conteúdo
           </label>
+          
+          {/* Upload de Imagem */}
+          <div className="mb-3">
+            <ImageUpload 
+              onImageUpload={(url) => {
+                const currentContent = post.content || ''
+                const imageMarkdown = `![Imagem](${url})`
+                const newContent = imageMarkdown + (currentContent ? '\n\n' + currentContent : '')
+                setPost({ ...post, content: newContent })
+              }}
+            />
+          </div>
+          
           <div data-color-mode="dark">
             <MDEditor
               value={post.content}
