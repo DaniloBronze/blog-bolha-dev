@@ -47,16 +47,16 @@ export default function LikeButton({ postId }: { postId: string }) {
   return (
     <button
       onClick={handleLike}
-      className="bg-white/10 hover:bg-white/20 text-white/90 px-3 py-1 rounded-lg transition-colors disabled:opacity-50"
+      className="bg-white/10 hover:bg-white/20 text-white/90 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-colors disabled:opacity-50 text-xs sm:text-sm"
       title="Curtir este post"
       disabled={loading}
     >
       {loading ? (
-        <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+        <span className="animate-spin inline-block w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full" />
       ) : (
-        <div className="flex items-center gap-2">
-          <FaHeart className="text-lg" />
-          <span className="text-sm">{data?.count || 0}</span>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <FaHeart className="text-sm sm:text-lg" />
+          <span className="text-xs sm:text-sm">{data?.count || 0}</span>
         </div>
       )}
     </button>

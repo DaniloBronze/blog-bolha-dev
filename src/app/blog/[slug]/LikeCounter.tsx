@@ -9,6 +9,6 @@ export default function LikeCounter({ postId }: { postId: string }) {
   })
 
   return (
-    <span className="text-white/70 text-sm">{likesData?.count || 0} curtidas</span>
+    <span className="text-white/70 text-xs sm:text-sm">{likesData?.count || 0} curtidas</span>
   )
 }

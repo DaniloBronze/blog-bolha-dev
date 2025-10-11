@@ -60,15 +60,15 @@ export default function About() {
         <h2 className="text-2xl font-bold text-white mb-6">Sobre mim</h2>
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/10">
           <p className="text-white/80 mb-4">
-            Estudante e amante de desenvolvimento desde os 14 anos, me especializei em 
+            Estudante e amante de desenvolvimento desde os 13 anos, me especializei em 
             sistemas legados e me tornei especialista em PHP. Atualmente trabalho como 
             Desenvolvedor Fullstack. Além disso, também crio conteúdos aqui no blog e no 
             meu canal do <a href="https://youtube.com/@BolhaDev" target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 transition-colors">YouTube</a>.
           </p>
           <p className="text-white/80">
-            Grande entusiasta de Object Calisthenics, SOLID, Design Patterns e tudo que há 
-            de bom, tento sempre seguir a regra do bom escoteiro: 
-            <em className="text-blue-300"> "Sempre deixe o código mais limpo do que quando você o encontrou"</em>
+            Apaixonado por boas práticas de desenvolvimento, princípios SOLID, Design Patterns 
+            e clean code. Sempre busco escrever código de qualidade e acredito na filosofia: 
+            <em className="text-blue-300"> "Deixe o código melhor do que você o encontrou"</em>
           </p>
         </div>
       </section>
@@ -126,7 +126,7 @@ export default function About() {
         <h2 className="text-2xl font-bold text-white mb-6">Contato</h2>
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/10">
           <p className="text-white/80 mb-6">
-            Interessado em trabalhar juntos ou tem alguma pergunta? 
+            Tem alguma pergunta? 
             Entre em contato comigo através dos canais abaixo:
           </p>
            <div className="flex flex-wrap gap-4">
