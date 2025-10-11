@@ -4,6 +4,7 @@
 import { FaHeart } from 'react-icons/fa'
 import { useState } from 'react'
 import { alertsMsg } from '@/utils/alerts'
+import { getOrCreateFingerprint } from '@/utils/fingerprint'
 import useSWR from 'swr'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
@@ -17,7 +18,17 @@ export default function LikeButton({ postId }: { postId: string }) {
   const handleLike = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/posts/${postId}/likes`, { method: 'POST' })
+      
+      // Gera ou obtém o fingerprint único do usuário
+      const fingerprint = getOrCreateFingerprint()
+      
+      const response = await fetch(`/api/posts/${postId}/likes`, { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fingerprint })
+      })
       const data = await response.json()
       
       if (data.liked) {

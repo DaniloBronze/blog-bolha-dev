@@ -41,14 +41,16 @@ model Comment {
 }
 
 model Like {
-  id        Int      @id @default(autoincrement())
-  ipAddress String
-  createdAt DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId    Int
+  id          Int      @id @default(autoincrement())
+  fingerprint String   // Identificador único do usuário (fingerprint do navegador)
+  ipAddress   String?  // Mantém IP para logs/analytics (opcional)
+  createdAt   DateTime @default(now())
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId      Int
 
-  @@unique([postId, ipAddress])
+  @@unique([postId, fingerprint])
   @@index([postId])
+  @@index([fingerprint])
 }
 
 model User {

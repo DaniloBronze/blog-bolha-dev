@@ -33,11 +33,22 @@ export async function POST(
   try {
     const headersList = headers()
     const ip = headersList.get('x-forwarded-for') || 'unknown'
+    
+    // Obtém o fingerprint do corpo da requisição
+    const body = await request.json()
+    const fingerprint = body.fingerprint
+
+    if (!fingerprint) {
+      return NextResponse.json(
+        { error: 'Fingerprint is required' },
+        { status: 400 }
+      )
+    }
 
     const existingLike = await prisma.like.findFirst({
       where: {
         postId: Number(params.postId),
-        ipAddress: ip,
+        fingerprint: fingerprint,
       },
     })
 
@@ -53,7 +64,8 @@ export async function POST(
     await prisma.like.create({
       data: {
         postId: Number(params.postId),
-        ipAddress: ip,
+        fingerprint: fingerprint,
+        ipAddress: ip, // Mantém IP para logs/analytics
       },
     })
 
