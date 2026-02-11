@@ -46,6 +46,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: SITE_URL,
   },
+  manifest: '/manifest.json',
 }
 
 const jsonLd = {

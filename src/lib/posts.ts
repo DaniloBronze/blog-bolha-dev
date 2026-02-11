@@ -8,6 +8,8 @@ export interface Post {
   slug: string
   title: string
   date: string
+  /** Data da última atualização (para exibir "Atualizado em") */
+  updatedAt: string | null
   description: string
   tags: string[]
   content: string
@@ -78,11 +80,17 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 
     const readingTime = calculateReadingTime(contentHtml)
 
+    const publishedAt = post.publishedAt?.toISOString() || ''
+    const updatedAt = (post as { updatedAt?: Date | null }).updatedAt
+    const updatedAtStr = updatedAt ? new Date(updatedAt).toISOString() : null
+    const showUpdated = updatedAtStr && updatedAtStr !== publishedAt
+
     return {
       slug: post.slug || '',
       title: post.title || '',
       id: Number(post.id),
-      date: post.publishedAt?.toISOString() || '',
+      date: publishedAt,
+      updatedAt: showUpdated ? updatedAtStr : null,
       description: post.description || '',
       tags: JSON.parse(post.tags || '[]'),
       content: contentHtml || '',
@@ -121,6 +129,7 @@ export async function getAllPosts(): Promise<Post[]> {
         title: post.title || '',
         id: Number(post.id),
         date: post.publishedAt?.toISOString() || '',
+        updatedAt: null,
         description: post.description || '',
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',
@@ -155,6 +164,7 @@ export async function getMostLikedPosts(count: number = 3): Promise<Post[]> {
         title: post.title || '',
         id: Number(post.id),
         date: post.publishedAt?.toISOString() || '',
+        updatedAt: null,
         description: post.description || '',
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',
@@ -194,6 +204,7 @@ export async function getRecentPosts(count: number = 5): Promise<Post[]> {
         title: post.title || '',
         id: Number(post.id),
         date: post.publishedAt?.toISOString() || '',
+        updatedAt: null,
         description: post.description || '',
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',
@@ -259,6 +270,7 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
         title: post.title || '',
         id: Number(post.id),
         date: post.publishedAt?.toISOString() || '',
+        updatedAt: null,
         description: post.description || '',
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',

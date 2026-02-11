@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
@@ -41,6 +42,10 @@ export async function POST(request: Request) {
         coverImage: coverImage || null,
       } as Prisma.PostCreateInput,
     })
+
+    revalidatePath('/')
+    revalidatePath('/blog')
+    revalidatePath(`/blog/${post.slug}`)
 
     return NextResponse.json(post)
   } catch (error) {

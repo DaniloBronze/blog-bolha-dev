@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
@@ -9,9 +10,23 @@ export async function DELETE(
   { params }: { params: { postId: string } }
 ) {
   try {
+    const post = await prisma.post.findUnique({ where: { id: Number(params.postId) }, select: { slug: true, tags: true } })
     await prisma.post.delete({
       where: { id: Number(params.postId) },
     })
+
+    if (post) {
+      revalidatePath('/')
+      revalidatePath('/blog')
+      revalidatePath(`/blog/${post.slug}`)
+      try {
+        const tagList = typeof post.tags === 'string' ? JSON.parse(post.tags || '[]') : []
+        tagList.forEach((tag: string) => {
+          const normalized = tag.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '')
+          if (normalized) revalidatePath(`/blog/tag/${normalized}`)
+        })
+      } catch (_) {}
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -71,6 +86,18 @@ export async function PUT(
         tags: JSON.stringify(body.tags),
       } as Prisma.PostUpdateInput,
     })
+
+    revalidatePath('/')
+    revalidatePath('/blog')
+    revalidatePath(`/blog/${updatedPost.slug}`)
+    const tags = typeof body.tags === 'string' ? JSON.parse(body.tags || '[]') : (body.tags || [])
+    tags.forEach((tag: string) => {
+      try {
+        const normalized = tag.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '')
+        if (normalized) revalidatePath(`/blog/tag/${normalized}`)
+      } catch (_) {}
+    })
+
     return NextResponse.json(updatedPost)
   } catch (error) {
     console.error('Erro ao atualizar post:', error)

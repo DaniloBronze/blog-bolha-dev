@@ -8,8 +8,8 @@ import LikeButton from './LikeButton'
 import { CtaBox } from '@/components/CtaBox'
 import { AdSense } from '@/components/AdSense'
 
-/** ISR: revalida a cada 5 min. Posts são pré-renderizados no build via generateStaticParams. */
-export const revalidate = 300
+/** ISR: revalida a cada 1 min. Revalidação imediata ao editar post via revalidatePath na API. */
+export const revalidate = 60
 
 /** Pré-renderiza todos os posts no build; novos posts são gerados on-demand e depois cacheados. */
 export async function generateStaticParams() {
@@ -30,8 +30,29 @@ export default async function BlogPost({ params }: { params: { slug: string } })
   const hasPrevious = currentIndex > 0
   const hasNext = currentIndex < recentPosts.length - 1
 
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://blog.pratuaqui.com.br'
+  const postUrl = `${SITE_URL}/blog/${post.slug}`
+
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.description ?? undefined,
+    image: post.coverImage ?? undefined,
+    datePublished: post.date,
+    dateModified: post.updatedAt ?? post.date,
+    author: { '@type': 'Organization', name: 'Bolha Dev', url: SITE_URL },
+    publisher: { '@type': 'Organization', name: 'Bolha Dev', url: SITE_URL },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': postUrl },
+    ...(post.tags?.length && { keywords: post.tags.join(', ') }),
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <div className="flex flex-col lg:flex-row lg:gap-8">
         <main className="flex-1">
           <article className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/10">
@@ -52,6 +73,11 @@ export default async function BlogPost({ params }: { params: { slug: string } })
                   <FaCalendar className="mr-2 flex-shrink-0" />
                   {new Date(post.date).toLocaleDateString('pt-BR')}
                 </span>
+                {post.updatedAt && (
+                  <span className="flex items-center text-white/60">
+                    Atualizado em {new Date(post.updatedAt).toLocaleDateString('pt-BR')}
+                  </span>
+                )}
                 <span className="flex items-center">
                   <FaClock className="mr-2 flex-shrink-0" />
                   {post.readingTime.text}
@@ -147,6 +173,8 @@ export default async function BlogPost({ params }: { params: { slug: string } })
   )
 }
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://blog.pratuaqui.com.br'
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const post = await getPostBySlug(params.slug)
 
@@ -156,8 +184,36 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     }
   }
 
+  const postUrl = `${SITE_URL}/blog/${params.slug}`
+
   return {
     title: post.title,
-    description: post.description,
+    description: post.description ?? undefined,
+    keywords: post.tags?.length ? post.tags : undefined,
+    authors: [{ name: 'Bolha Dev', url: SITE_URL }],
+    creator: 'Bolha Dev',
+    openGraph: {
+      type: 'article',
+      locale: 'pt_BR',
+      url: postUrl,
+      siteName: 'Bolha Dev',
+      title: post.title,
+      description: post.description ?? undefined,
+      ...(post.coverImage && {
+        images: [{ url: post.coverImage, width: 1200, height: 630, alt: post.title }],
+      }),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description ?? undefined,
+    },
+    alternates: {
+      canonical: postUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
   }
 }
