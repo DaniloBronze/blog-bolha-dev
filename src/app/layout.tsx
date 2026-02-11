@@ -1,5 +1,4 @@
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
 import './globals.css'
 import { SessionProvider } from '@/providers/SessionProvider'
 import Navigation from '@/components/Navigation'
@@ -69,14 +68,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body className={`${inter.className} min-h-screen bg-gray-900`}>
+      <head>
         {ADSENSE_CLIENT_ID && (
-          <Script
-            id="google-adsense"
+          <script
+            async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
-            strategy="afterInteractive"
+            crossOrigin="anonymous"
           />
         )}
+      </head>
+      <body className={`${inter.className} min-h-screen bg-gray-900`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

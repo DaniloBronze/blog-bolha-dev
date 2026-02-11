@@ -9,6 +9,7 @@ declare global {
 }
 
 const AD_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
+const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
 export interface AdSenseProps {
   /** ID do slot do anúncio (ex.: "1234567890") */
@@ -24,9 +25,10 @@ export interface AdSenseProps {
 }
 
 /**
- * Bloco de anúncio Google AdSense.
- * Evita hydration: renderiza o ins apenas no client e dispara push() após montar.
- * O script do Google deve ser carregado uma vez no layout (ex.: root layout) via next/script.
+ * Bloco de anúncio Google AdSense (client-safe).
+ * - Só executa push() quando o container tem largura > 0 (evita availableWidth=0).
+ * - Não executa em desenvolvimento (NODE_ENV !== 'production').
+ * - Script deve estar no <head> do layout (sem next/script).
  */
 export function AdSense({
   adSlot,
@@ -36,18 +38,39 @@ export function AdSense({
   style,
 }: AdSenseProps) {
   const [mounted, setMounted] = useState(false)
-  const insRef = useRef<HTMLModElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const pushDoneRef = useRef(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    if (!mounted || !adClient || !adSlot) return
-    try {
-      ;(window.adsbygoogle = window.adsbygoogle || []).push({})
-    } catch (e) {
-      console.warn('AdSense push error:', e)
+    if (!mounted || !adClient || !adSlot || !IS_PRODUCTION) return
+    if (pushDoneRef.current) return
+
+    const container = containerRef.current
+    if (!container) return
+
+    const tryPush = () => {
+      if (pushDoneRef.current) return
+      try {
+        if (typeof window === 'undefined' || !window.adsbygoogle) return
+        if (container.offsetWidth <= 0) return
+        pushDoneRef.current = true
+        ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+      } catch (e) {
+        console.warn('AdSense push error:', e)
+      }
+    }
+
+    tryPush()
+    if (container.offsetWidth <= 0) {
+      const ro = new ResizeObserver(() => {
+        if (container.offsetWidth > 0) tryPush()
+      })
+      ro.observe(container)
+      return () => ro.disconnect()
     }
   }, [mounted, adClient, adSlot])
 
@@ -64,16 +87,19 @@ export function AdSense({
     return (
       <div
         className={`adsense-placeholder ${className}`.trim()}
-        style={placeholderStyle}
+        style={{ ...placeholderStyle, width: '100%' }}
         aria-hidden
       />
     )
   }
 
   return (
-    <div className={className.trim() || undefined} style={style}>
+    <div
+      ref={containerRef}
+      className={className.trim() || undefined}
+      style={{ width: '100%', ...style }}
+    >
       <ins
-        ref={insRef}
         className="adsbygoogle"
         data-ad-client={adClient}
         data-ad-slot={adSlot}
