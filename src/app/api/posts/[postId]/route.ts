@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -64,10 +65,11 @@ export async function PUT(
         title: body.title,
         description: body.description,
         content: body.content,
+        coverImage: body.hasOwnProperty('coverImage') ? (body.coverImage || null) : undefined,
         published: body.published,
         publishedAt: body.publishedAt,
-        tags: JSON.stringify(body.tags)
-      }
+        tags: JSON.stringify(body.tags),
+      } as Prisma.PostUpdateInput,
     })
     return NextResponse.json(updatedPost)
   } catch (error) {

@@ -5,6 +5,8 @@ import { Metadata } from 'next'
 import Sidebar from '@/components/Sidebar'
 import Link from 'next/link'
 import LikeButton from './LikeButton'
+import { CtaBox } from '@/components/CtaBox'
+import { AdSense } from '@/components/AdSense'
 
 /** ISR: revalida a cada 5 min. Posts são pré-renderizados no build via generateStaticParams. */
 export const revalidate = 300
@@ -34,6 +36,11 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         <main className="flex-1">
           <article className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/10">
             <div className="p-4 sm:p-6 lg:p-8">
+              {/* Anúncio — topo do post */}
+              <div className="mb-6 flex justify-center">
+                <AdSense adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP ?? ''} className="min-w-0" />
+              </div>
+
               {/* Título */}
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight mb-6">
                 {post.title}
@@ -70,6 +77,16 @@ export default async function BlogPost({ params }: { params: { slug: string } })
                 className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-white prose-headings:text-white prose-a:text-blue-300 prose-strong:text-white prose-code:text-pink-300 prose-pre:bg-black/20 prose-blockquote:border-blue-400"
                 dangerouslySetInnerHTML={{ __html: post.content }} 
               />
+
+              {/* Anúncio — após o conteúdo */}
+              <div className="mt-8 flex justify-center">
+                <AdSense adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ''} className="min-w-0" />
+              </div>
+
+              {/* CTA PraTuAqui — converte leitor em lead (use CtaBox com props customizadas por post quando tiver o campo no admin) */}
+              <div className="mt-8">
+                <CtaBox />
+              </div>
 
               {/* Seção de like destacada */}
               <div className="mt-8 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl border border-blue-400/20">

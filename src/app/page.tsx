@@ -1,91 +1,77 @@
 import Link from 'next/link'
-import { FaCalendar, FaClock, FaTags, FaArrowRight } from 'react-icons/fa'
 import Sidebar from '@/components/Sidebar'
-import { getRecentPosts, getAllTags } from '@/lib/posts'
+import PostCard from '@/components/PostCard'
+import { getRecentPosts, getAllTags, getMostLikedPosts } from '@/lib/posts'
 
-/** ISR: revalida a cada 60s. Remove force-dynamic para permitir cache e evitar compilação sob demanda. */
 export const revalidate = 60
 
 export default async function Home() {
-  const recentPosts = await getRecentPosts(6)
-  const tags = await getAllTags()
+  const [recentPosts, tags, maisLidasPosts] = await Promise.all([
+    getRecentPosts(7),
+    getAllTags(),
+    getMostLikedPosts(3),
+  ])
+
+  const featuredPost = recentPosts[0]
+  const maisRecentesPosts = recentPosts.slice(1, 7)
+  const maisLidas = maisLidasPosts.length > 0 ? maisLidasPosts : recentPosts.slice(0, 3)
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
       <div className="flex flex-col lg:flex-row lg:gap-8">
-        <main className="flex-1">
-          {/* <section className="mb-8">
-            <h1 className="text-4xl font-bold text-white mb-4">
-              Blog do <span className="text-blue-300">Danilo Silva</span>
-            </h1>
-            <p className="text-lg text-white/80 mb-6">
-              Artigos sobre desenvolvimento, tecnologia e programação
-            </p>
-            <Link
-              href="/sobre"
-              className="inline-flex items-center text-blue-300 hover:text-blue-200 transition-colors"
-            >
-              Sobre mim <FaArrowRight className="ml-2" />
-            </Link>
-          </section> */}
+        <main className="flex-1 min-w-0">
+          {/* Hero – post em destaque (estilo Ei NERD) */}
+          {featuredPost && (
+            <section className="mb-8">
+              <Link
+                href={`/blog/${featuredPost.slug}`}
+                className="block group rounded-xl overflow-hidden border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                <div className="relative h-56 sm:h-72 flex flex-col justify-end p-4 sm:p-6 bg-gradient-to-br from-blue-900/90 via-indigo-900/80 to-slate-900/90">
+                  {featuredPost.coverImage && (
+                    <img
+                      src={featuredPost.coverImage}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover object-center opacity-70"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+                  <span className="absolute top-3 left-3 bg-amber-500 text-neutral-900 text-xs font-bold uppercase px-2 py-1 rounded z-10">
+                    Destaque
+                  </span>
+                  <h1 className="relative z-10 text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-tight group-hover:text-blue-300 transition-colors line-clamp-2">
+                    {featuredPost.title}
+                  </h1>
+                  <span className="relative z-10 block w-12 h-0.5 bg-amber-400 mt-2 rounded" />
+                  <p className="relative z-10 text-white/80 text-sm sm:text-base mt-2 line-clamp-2">
+                    {featuredPost.description}
+                  </p>
+                </div>
+              </Link>
+            </section>
+          )}
 
+          {/* Mais recentes */}
           <section>
-            <h2 className="text-2xl font-bold text-white mb-6">Posts Recentes</h2>
-            <div className="space-y-6">
-              {recentPosts.map((post) => (
-                <article
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="w-8 h-0.5 bg-amber-400 rounded" />
+              Mais recentes
+            </h2>
+            <div className="space-y-4">
+              {maisRecentesPosts.map((post, i) => (
+                <PostCard
                   key={post.slug}
-                  className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/10 hover:bg-white/20 transition-colors"
-                >
-                  <div className="p-6">
-                    <div className="flex items-center gap-4 mb-4">
-                      <h3 className="text-xl font-bold text-white hover:text-blue-300 transition-colors">
-                        <Link href={`/blog/${post.slug}`}>
-                          {post.title}
-                        </Link>
-                      </h3>
-                    </div>
-
-                    <p className="text-white/70 mb-4 line-clamp-3">
-                      {post.description}
-                    </p>
-
-                    <div className="flex flex-wrap items-center text-sm text-white/60 mb-4 gap-4">
-                      <span className="flex items-center">
-                        <FaCalendar className="mr-2" />
-                        {new Date(post.date).toLocaleDateString('pt-BR')}
-                      </span>
-                      <span className="flex items-center">
-                        <FaClock className="mr-2" />
-                        {post.readingTime.text}
-                      </span>
-                      {post.tags.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <FaTags className="mr-1" />
-                          {post.tags.slice(0, 3).map((tag) => (
-                            <Link
-                              key={tag}
-                              href={`/blog/tag/${tag}`}
-                              className="bg-white/10 hover:bg-white/20 text-white/90 px-2 py-1 rounded-full text-xs transition-colors"
-                            >
-                              {tag}
-                            </Link>
-                          ))}
-                          {post.tags.length > 3 && (
-                            <span className="text-white/60">+{post.tags.length - 3}</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      className="inline-flex items-center text-blue-300 hover:text-blue-200 transition-colors"
-                    >
-                      Ler mais <FaArrowRight className="ml-2" />
-                    </Link>
-                  </div>
-                </article>
+                  slug={post.slug}
+                  title={post.title}
+                  description={post.description}
+                  tags={post.tags}
+                  date={post.date}
+                  readingTime={post.readingTime.text}
+                  coverImage={post.coverImage}
+                  tagColorIndex={i % 3}
+                  horizontal
+                  badge={i === 0 ? 'Agora mesmo' : undefined}
+                />
               ))}
             </div>
 
@@ -93,16 +79,21 @@ export default async function Home() {
               <div className="mt-8 text-center">
                 <Link
                   href="/blog"
-                  className="bg-blue-600/30 text-white px-6 py-3 rounded-lg hover:bg-blue-500/40 transition-colors flex items-center justify-center backdrop-blur-sm border border-blue-400/30 inline-flex"
+                  className="inline-flex items-center gap-2 bg-blue-600/80 text-white px-6 py-3 rounded-lg hover:bg-blue-500 transition-colors text-sm font-medium"
                 >
-                  Ver todos os posts <FaArrowRight className="ml-2" />
+                  Ver todos os posts
+                  <span aria-hidden>→</span>
                 </Link>
               </div>
             )}
           </section>
         </main>
 
-        <Sidebar recentPosts={recentPosts.slice(0, 5)} tags={tags} />
+        <Sidebar
+          recentPosts={recentPosts.slice(0, 5)}
+          tags={tags}
+          maisLidasPosts={maisLidas}
+        />
       </div>
     </div>
   )

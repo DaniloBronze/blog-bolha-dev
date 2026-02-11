@@ -18,12 +18,41 @@ interface SidebarProps {
   recentPosts: Post[]
   tags?: string[]
   currentTag?: string
+  /** Posts para o bloco "Mais lidas" (estilo Ei NERD – fundo amarelo, números) */
+  maisLidasPosts?: Post[]
 }
 
-export default function Sidebar({ recentPosts, tags, currentTag }: SidebarProps) {
+export default function Sidebar({ recentPosts, tags, currentTag, maisLidasPosts }: SidebarProps) {
   return (
-    <aside className="w-full lg:w-64 lg:ml-8 mt-6 lg:mt-0">
-      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 border border-white/10">
+    <aside className="w-full lg:w-72 lg:ml-8 mt-6 lg:mt-0 flex flex-col gap-4 sm:gap-6">
+      {maisLidasPosts && maisLidasPosts.length > 0 && (
+        <div className="bg-amber-400 text-neutral-900 rounded-lg p-4 sm:p-5 border border-amber-500/50">
+          <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide mb-3">Mais lidas</h2>
+          <ul className="space-y-3">
+            {maisLidasPosts.map((post, i) => (
+              <li key={post.slug}>
+                <Link href={`/blog/${post.slug}`} className="flex gap-3 items-start group">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    {post.tags[0] && (
+                      <span className="text-xs font-semibold uppercase text-neutral-600">
+                        {post.tags[0]}
+                      </span>
+                    )}
+                    <p className="text-sm font-medium text-neutral-900 group-hover:underline line-clamp-2">
+                      {post.title}
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 sm:p-6 border border-white/10">
         <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Posts Recentes</h2>
         <div className="space-y-3 sm:space-y-4">
           {recentPosts.map((post) => (
@@ -72,3 +101,4 @@ export default function Sidebar({ recentPosts, tags, currentTag }: SidebarProps)
     </aside>
   )
 }
+

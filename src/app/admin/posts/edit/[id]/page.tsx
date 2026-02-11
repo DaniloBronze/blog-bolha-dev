@@ -1,10 +1,11 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { FaSave, FaTimes } from 'react-icons/fa'
 import { alertsMsg } from '@/utils/alerts'
 import ImageUpload from '@/components/ImageUpload'
+import { extractImageUrlsFromContent } from '@/utils/extract-images'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 import MDEditor from '@uiw/react-md-editor'
@@ -13,6 +14,7 @@ interface Post {
   title: string
   description: string
   content: string
+  coverImage: string | null
   published: boolean
   publishedAt: Date | null
   tags: string[]
@@ -24,10 +26,13 @@ export default function EditPost({ params }: { params: { id: string } }) {
     title: '',
     description: '',
     content: '',
+    coverImage: null,
     published: false,
     publishedAt: null,
     tags: []
   })
+
+  const imagesInContent = useMemo(() => extractImageUrlsFromContent(post.content), [post.content])
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -40,7 +45,8 @@ export default function EditPost({ params }: { params: { id: string } }) {
         setPost({
           ...data,
           tags: typeof data.tags === 'string' ? JSON.parse(data.tags) : data.tags || [],
-          publishedAt: data.publishedAt ? new Date(data.publishedAt) : null
+          publishedAt: data.publishedAt ? new Date(data.publishedAt) : null,
+          coverImage: data.coverImage || null
         })
       } catch (error) {
         alertsMsg('error', 'Erro ao carregar post')
@@ -139,16 +145,50 @@ export default function EditPost({ params }: { params: { id: string } }) {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="publishedAt" className="block text-sm font-medium">
-            Data de Publicação
-          </label>
-          <input
-            id="publishedAt"
-            type="datetime-local"
-            value={post.publishedAt ? new Date(post.publishedAt).toISOString().slice(0, 16) : ''}
-            onChange={(e) => setPost({ ...post, publishedAt: new Date(e.target.value) })}
-            className="w-full bg-white/10 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          />
+          <label className="block text-sm font-medium">Imagem principal do post</label>
+          <p className="text-white/60 text-xs mb-2">
+            Usada no destaque da home, nos cards e na listagem. Escolha uma imagem do conteúdo abaixo ou envie outra.
+          </p>
+          <div className="flex flex-wrap gap-3 items-start">
+            <label className="flex flex-col items-center gap-1 cursor-pointer">
+              <span className="w-20 h-20 rounded-lg border-2 border-dashed border-white/30 flex items-center justify-center text-white/50 text-xs">
+                Nenhuma
+              </span>
+              <input
+                type="radio"
+                name="coverImage"
+                checked={!post.coverImage}
+                onChange={() => setPost({ ...post, coverImage: null })}
+                className="sr-only"
+              />
+              <span className="text-xs text-white/70">Nenhuma</span>
+            </label>
+            {imagesInContent.map((url) => (
+              <label key={url} className="flex flex-col items-center gap-1 cursor-pointer">
+                <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-white/30 bg-white/5">
+                  <img
+                    src={url}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <input
+                  type="radio"
+                  name="coverImage"
+                  checked={post.coverImage === url}
+                  onChange={() => setPost({ ...post, coverImage: url })}
+                  className="sr-only"
+                />
+              </label>
+            ))}
+            <div className="flex flex-col items-center gap-1">
+              <ImageUpload
+                onImageUpload={(url) => setPost({ ...post, coverImage: url })}
+                disabled={false}
+              />
+              <span className="text-xs text-white/70">Enviar outra</span>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-2">

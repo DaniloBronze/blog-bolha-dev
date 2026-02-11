@@ -13,6 +13,8 @@ export interface Post {
   content: string
   id: number
   likes: number
+  /** URL da imagem principal/capa do post. */
+  coverImage: string | null
   readingTime: {
     minutes: number
     text: string
@@ -30,17 +32,23 @@ export function normalizeTag(tag: string): string {
     .replace(/^-+|-+$/g, ''); // Remove hífens no início e no final
 }
 
-/** Retorna apenas slug e data para sitemap (consulta leve, sem processar conteúdo). */
-export async function getPostSlugsForSitemap(): Promise<{ slug: string; publishedAt: Date }[]> {
+/** Retorna apenas slug e datas para sitemap (consulta leve, sem processar conteúdo). */
+export async function getPostSlugsForSitemap(): Promise<
+  { slug: string; publishedAt: Date; updatedAt: Date }[]
+> {
   try {
     const posts = await prisma.post.findMany({
       where: { published: true },
-      select: { slug: true, publishedAt: true },
+      select: { slug: true, publishedAt: true, updatedAt: true },
       orderBy: { publishedAt: 'desc' },
     })
     return posts
       .filter((p) => p.slug)
-      .map((p) => ({ slug: p.slug!, publishedAt: p.publishedAt || new Date() }))
+      .map((p) => ({
+        slug: p.slug!,
+        publishedAt: p.publishedAt || new Date(),
+        updatedAt: p.updatedAt || new Date(),
+      }))
   } catch (error) {
     console.error('Erro ao buscar slugs para sitemap:', error)
     return []
@@ -79,6 +87,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
       tags: JSON.parse(post.tags || '[]'),
       content: contentHtml || '',
       likes: post._count?.likes || 0,
+      coverImage: (post as { coverImage?: string | null }).coverImage || null,
       readingTime,
     }
   } catch (error) {
@@ -115,12 +124,47 @@ export async function getAllPosts(): Promise<Post[]> {
         description: post.description || '',
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',
-        likes: 0, // Simplificado para performance
+        likes: 0,
+        coverImage: post.coverImage || null,
         readingTime: calculateReadingTime(contentHtml),
       }
     })
   } catch (error) {
     console.error('Erro ao buscar todos os posts:', error)
+    return []
+  }
+}
+
+/** Posts mais curtidos (para bloco "Mais lidas" / destaque). */
+export async function getMostLikedPosts(count: number = 3): Promise<Post[]> {
+  try {
+    const posts = await prisma.post.findMany({
+      where: { published: true },
+      orderBy: { likes: { _count: 'desc' } },
+      take: count,
+      include: { _count: { select: { likes: true } } },
+    })
+    return posts.map((post: any) => {
+      const processedContent = remark()
+        .use(html)
+        .use(remarkGfm)
+        .processSync(post.content)
+      const contentHtml = processedContent.toString()
+      return {
+        slug: post.slug || '',
+        title: post.title || '',
+        id: Number(post.id),
+        date: post.publishedAt?.toISOString() || '',
+        description: post.description || '',
+        tags: JSON.parse(post.tags || '[]'),
+        content: contentHtml || '',
+        likes: post._count?.likes || 0,
+        coverImage: post.coverImage || null,
+        readingTime: calculateReadingTime(contentHtml),
+      }
+    })
+  } catch (error) {
+    console.error('Erro ao buscar posts mais curtidos:', error)
     return []
   }
 }
@@ -153,7 +197,8 @@ export async function getRecentPosts(count: number = 5): Promise<Post[]> {
         description: post.description || '',
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',
-        likes: 0, // Simplificado para performance
+        likes: 0,
+        coverImage: post.coverImage || null,
         readingTime: calculateReadingTime(contentHtml),
       }
     })
@@ -218,6 +263,7 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
         tags: JSON.parse(post.tags || '[]'),
         content: contentHtml || '',
         likes: post._count?.likes || 0,
+        coverImage: post.coverImage || null,
         readingTime: calculateReadingTime(contentHtml),
       }
     }))

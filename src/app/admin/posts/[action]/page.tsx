@@ -15,6 +15,7 @@ interface PostFormData {
   title: string
   description: string
   content: string
+  coverImage: string | null
   tags: string[]
   published: boolean
   publishedAt: string
@@ -33,6 +34,7 @@ export default function PostEditorPage({
     title: '',
     description: '',
     content: '',
+    coverImage: null,
     tags: [],
     published: false,
     publishedAt: new Date().toISOString().split('T')[0],
@@ -121,6 +123,35 @@ export default function PostEditorPage({
                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
+            </div>
+
+            {/* Imagem principal */}
+            <div>
+              <label className="block text-sm font-medium text-white/90 mb-1">
+                Imagem principal do post
+              </label>
+              <p className="text-white/60 text-xs mb-2">
+                Usada no destaque da home e nos cards. Opcional.
+              </p>
+              <div className="flex flex-wrap gap-3 items-center">
+                {formData.coverImage && (
+                  <div className="w-20 h-20 rounded-lg overflow-hidden border border-white/20 bg-white/5">
+                    <img src={formData.coverImage} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <ImageUpload
+                  onImageUpload={(url) => setFormData({ ...formData, coverImage: url })}
+                />
+                {formData.coverImage && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, coverImage: null })}
+                    className="text-sm text-white/70 hover:text-white"
+                  >
+                    Remover
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Content */}

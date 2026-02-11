@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 
+const PRODUTO_URL = process.env.NEXT_PUBLIC_PRODUTO_URL ?? 'https://pratuaqui.com.br'
+
 export default function Navigation() {
   const pathname = usePathname()
   const [session, setSession] = useState<any>(null)
@@ -19,61 +21,48 @@ export default function Navigation() {
     }
   }, [sessionData, status])
 
+  const navLink = (href: string, label: string) => {
+    const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href)
+    return (
+      <Link
+        href={href}
+        className={`py-4 px-2 text-sm font-medium uppercase tracking-wide transition-colors ${
+          isActive ? 'text-blue-400 border-b-2 border-blue-400' : 'text-white/90 hover:text-white'
+        }`}
+      >
+        {label}
+      </Link>
+    )
+  }
+
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
+    <nav className="bg-black/40 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="flex justify-between">
-          <div className="flex space-x-7">
-            <div className="flex items-center py-4">
-              <Link href="/" className="text-2xl font-bold text-white hover:text-blue-300">
-                Bolha Dev
-              </Link>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Link
+              href="/"
+              className="flex items-center py-3 px-3 rounded bg-blue-600 text-white font-bold text-sm uppercase tracking-wide hover:bg-blue-500 transition-colors"
+            >
+              Bolha Dev
+            </Link>
+            <div className="hidden sm:flex items-center gap-1">
+              {navLink('/', 'Home')}
+              {navLink('/blog', 'Blog')}
+              {navLink('/sobre', 'Sobre')}
+              {!loading && session && navLink('/admin/dashboard', 'Admin')}
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <Link
-              href="/"
-              className={`py-4 px-2 ${
-                pathname === '/'
-                  ? 'text-blue-300 border-b-2 border-blue-300'
-                  : 'text-white hover:text-blue-300'
-              }`}
+          <div className="flex items-center gap-3">
+            <a
+              href={PRODUTO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center py-2 px-4 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors"
             >
-              Home
-            </Link>
-            <Link
-              href="/blog"
-              className={`py-4 px-2 ${
-                pathname.startsWith('/blog')
-                  ? 'text-blue-300 border-b-2 border-blue-300'
-                  : 'text-white hover:text-blue-300'
-              }`}
-            >
-              Blog
-            </Link>
-            <Link
-              href="/sobre"
-              className={`py-4 px-2 ${
-                pathname.startsWith('/sobre')
-                  ? 'text-blue-300 border-b-2 border-blue-300'
-                  : 'text-white hover:text-blue-300'
-              }`}
-            >
-              Sobre
-            </Link>
-            {!loading && session && (
-              <Link
-                href="/admin/dashboard"
-                className={`py-4 px-2 ${
-                  pathname.startsWith('/admin')
-                    ? 'text-blue-300 border-b-2 border-blue-300'
-                    : 'text-white hover:text-blue-300'
-                }`}
-              >
-                Admin
-              </Link>
-            )}
+              Testar PraTuAqui
+            </a>
           </div>
         </div>
       </div>

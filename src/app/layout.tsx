@@ -1,9 +1,12 @@
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import { SessionProvider } from '@/providers/SessionProvider'
 import Navigation from '@/components/Navigation'
 
 const inter = Inter({ subsets: ['latin'] })
+
+const ADSENSE_CLIENT_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
 
 import type { Metadata } from 'next'
 
@@ -67,6 +70,13 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${inter.className} min-h-screen bg-gray-900`}>
+        {ADSENSE_CLIENT_ID && (
+          <Script
+            id="google-adsense"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
+            strategy="afterInteractive"
+          />
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

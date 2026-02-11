@@ -1,71 +1,56 @@
-import { getAllTags, getPostsByTag } from '@/lib/posts'
-import Link from 'next/link'
-import { FaCalendar, FaTags } from 'react-icons/fa'
+import { getAllTags, getPostsByTag, getMostLikedPosts } from '@/lib/posts'
 import Sidebar from '@/components/Sidebar'
+import PostCard from '@/components/PostCard'
 import { notFound } from 'next/navigation'
 
-/** ISR: revalida a cada 60s. Tags são pré-renderizadas no build. */
 export const revalidate = 60
 
 interface Props {
-  params: {
-    tag: string
-  }
+  params: { tag: string }
 }
 
 export async function generateStaticParams() {
   const tags = await getAllTags()
-  return tags.map((tag) => ({
-    tag: tag,
-  }))
+  return tags.map((tag) => ({ tag }))
 }
 
 export default async function TagPage({ params }: Props) {
   const { tag } = params
-  const posts = await getPostsByTag(tag)
-  const allTags = await getAllTags()
+  const [posts, allTags, maisLidasPosts] = await Promise.all([
+    getPostsByTag(tag),
+    getAllTags(),
+    getMostLikedPosts(3),
+  ])
 
   if (!allTags.includes(tag)) {
     notFound()
   }
 
+  const maisLidas = maisLidasPosts.length > 0 ? maisLidasPosts : posts.slice(0, 3)
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex flex-col lg:flex-row lg:gap-8">
         <main className="flex-1">
-          <div className="flex items-center gap-4 mb-8">
-            <h1 className="text-4xl font-bold text-white">Posts com a tag</h1>
-            <span className="bg-blue-600/50 text-white px-4 py-1 rounded-full text-lg">
-              {tag}
-            </span>
-          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 flex items-center gap-2">
+            <span className="w-10 h-0.5 bg-emerald-400 rounded" />
+            {tag}
+          </h1>
+          <p className="text-white/70 text-sm mb-6">Posts com esta tag</p>
 
-          <div className="space-y-6">
-            {posts.map((post) => (
-              <article key={post.slug} className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/10 hover:bg-white/20 transition-colors">
-                <Link href={`/blog/${post.slug}`}>
-                  <div className="p-6">
-                    <h2 className="text-2xl font-bold text-white mb-2">
-                      {post.title}
-                    </h2>
-                    <div className="flex items-center text-sm text-white/70 mb-4">
-                      <span className="mr-4 flex items-center">
-                        <FaCalendar className="mr-2" />
-                        {new Date(post.date).toLocaleDateString('pt-BR')}
-                      </span>
-                      {post.tags && post.tags.length > 0 && (
-                        <span className="flex items-center">
-                          <FaTags className="mr-2" />
-                          {post.tags.join(', ')}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-white/80">
-                      {post.description}
-                    </p>
-                  </div>
-                </Link>
-              </article>
+          <div className="grid gap-6 sm:grid-cols-2">
+            {posts.map((post, i) => (
+              <PostCard
+                key={post.slug}
+                slug={post.slug}
+                title={post.title}
+                description={post.description}
+                tags={post.tags}
+                date={post.date}
+                readingTime={post.readingTime.text}
+                coverImage={post.coverImage}
+                tagColorIndex={i % 3}
+              />
             ))}
           </div>
 
@@ -76,7 +61,12 @@ export default async function TagPage({ params }: Props) {
           )}
         </main>
 
-        <Sidebar recentPosts={posts.slice(0, 5)} tags={allTags} currentTag={tag} />
+        <Sidebar
+          recentPosts={posts.slice(0, 5)}
+          tags={allTags}
+          currentTag={tag}
+          maisLidasPosts={maisLidas}
+        />
       </div>
     </div>
   )

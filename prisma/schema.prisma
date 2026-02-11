@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,16 +8,18 @@ datasource db {
 }
 
 model Post {
-  id          Int       @id @default(autoincrement())
   slug        String    @unique
   title       String
   content     String
   description String?
-  tags        String    // Stored as JSON array
+  tags        String
   published   Boolean   @default(false)
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  id          Int       @id @default(autoincrement())
+  /// * URL da imagem principal/capa do post (lista, destaque, cards).
+  coverImage  String?
   comments    Comment[]
   likes       Like[]
 
@@ -28,25 +27,25 @@ model Post {
 }
 
 model Comment {
-  id        Int      @id @default(autoincrement())
-  content   String
-  authorName String
+  content     String
+  authorName  String
   authorEmail String
-  createdAt DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId    Int
-  approved  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  approved    Boolean  @default(false)
+  id          Int      @id @default(autoincrement())
+  postId      Int
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([postId])
 }
 
 model Like {
-  id          Int      @id @default(autoincrement())
-  fingerprint String   // Identificador único do usuário (fingerprint do navegador)
-  ipAddress   String?  // Mantém IP para logs/analytics (opcional)
+  ipAddress   String?
   createdAt   DateTime @default(now())
-  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  id          Int      @id @default(autoincrement())
   postId      Int
+  fingerprint String
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([postId, fingerprint])
   @@index([postId])
