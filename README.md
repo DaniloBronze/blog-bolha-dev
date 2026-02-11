@@ -53,6 +53,7 @@ Para exibir anúncios nos posts (`/blog/[slug]`), configure no `.env`:
 NEXT_PUBLIC_ADSENSE_CLIENT_ID=ca-pub-XXXXXXXXXXXXXXXX
 NEXT_PUBLIC_ADSENSE_SLOT_TOP=XXXXXXXXXX
 NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM=XXXXXXXXXX
+NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR=XXXXXXXXXX
 ```
 
 O script do Google é carregado uma vez no layout (next/script). Um bloco aparece no topo do post e outro após o conteúdo.

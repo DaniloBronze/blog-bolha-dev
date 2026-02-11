@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { FaCalendar, FaClock } from 'react-icons/fa'
+import { AdSense } from '@/components/AdSense'
 
 interface Post {
   slug: string
@@ -49,6 +50,16 @@ export default function Sidebar({ recentPosts, tags, currentTag, maisLidasPosts 
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {process.env.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR && (
+        <div className="flex justify-center">
+          <AdSense
+            adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR}
+            adFormat="rectangle"
+            className="w-full"
+          />
         </div>
       )}
 

@@ -49,7 +49,7 @@ export default function PostCard({
   const tagColor = getTagColor(tagColorIndex)
   const firstTag = tags[0]
 
-  const thumbClass = `relative flex-shrink-0 overflow-hidden ${horizontal ? 'w-32 h-32 sm:w-44 sm:h-44 rounded-l-lg sm:rounded-l-xl' : 'w-full h-40 rounded-lg'} ${!coverImage ? placeholderGradient(slug) : 'bg-neutral-800'}`
+  const thumbClass = `relative flex-shrink-0 overflow-hidden ${horizontal ? 'w-full h-40 rounded-t-lg sm:w-44 sm:h-44 sm:rounded-t-none sm:rounded-l-xl' : 'w-full h-40 rounded-lg'} ${!coverImage ? placeholderGradient(slug) : 'bg-neutral-800'}`
 
   const content = (
     <>
