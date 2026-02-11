@@ -4,6 +4,9 @@ import { FaCalendar, FaTags } from 'react-icons/fa'
 import Sidebar from '@/components/Sidebar'
 import { notFound } from 'next/navigation'
 
+/** ISR: revalida a cada 60s. Tags são pré-renderizadas no build. */
+export const revalidate = 60
+
 interface Props {
   params: {
     tag: string

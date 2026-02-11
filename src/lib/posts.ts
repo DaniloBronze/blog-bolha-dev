@@ -30,6 +30,23 @@ export function normalizeTag(tag: string): string {
     .replace(/^-+|-+$/g, ''); // Remove hífens no início e no final
 }
 
+/** Retorna apenas slug e data para sitemap (consulta leve, sem processar conteúdo). */
+export async function getPostSlugsForSitemap(): Promise<{ slug: string; publishedAt: Date }[]> {
+  try {
+    const posts = await prisma.post.findMany({
+      where: { published: true },
+      select: { slug: true, publishedAt: true },
+      orderBy: { publishedAt: 'desc' },
+    })
+    return posts
+      .filter((p) => p.slug)
+      .map((p) => ({ slug: p.slug!, publishedAt: p.publishedAt || new Date() }))
+  } catch (error) {
+    console.error('Erro ao buscar slugs para sitemap:', error)
+    return []
+  }
+}
+
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
     const post = await prisma.post.findUnique({

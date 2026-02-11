@@ -3,7 +3,8 @@ import { FaCalendar, FaClock, FaTags, FaArrowRight } from 'react-icons/fa'
 import Sidebar from '@/components/Sidebar'
 import { getRecentPosts, getAllTags } from '@/lib/posts'
 
-export const dynamic = 'force-dynamic'
+/** ISR: revalida a cada 60s. Remove force-dynamic para permitir cache e evitar compilação sob demanda. */
+export const revalidate = 60
 
 export default async function Home() {
   const recentPosts = await getRecentPosts(6)

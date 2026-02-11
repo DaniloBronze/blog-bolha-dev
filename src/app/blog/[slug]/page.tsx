@@ -1,10 +1,19 @@
-import { getPostBySlug, getAllPosts, getAllTags } from '@/lib/posts'
+import { getPostBySlug, getAllPosts, getAllTags, getPostSlugsForSitemap } from '@/lib/posts'
 import { FaCalendar, FaTags, FaClock } from 'react-icons/fa'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Sidebar from '@/components/Sidebar'
 import Link from 'next/link'
 import LikeButton from './LikeButton'
+
+/** ISR: revalida a cada 5 min. Posts são pré-renderizados no build via generateStaticParams. */
+export const revalidate = 300
+
+/** Pré-renderiza todos os posts no build; novos posts são gerados on-demand e depois cacheados. */
+export async function generateStaticParams() {
+  const posts = await getPostSlugsForSitemap()
+  return posts.map((p) => ({ slug: p.slug }))
+}
 
 export default async function BlogPost({ params }: { params: { slug: string } }) {
   const post = await getPostBySlug(params.slug)
@@ -120,8 +129,6 @@ export default async function BlogPost({ params }: { params: { slug: string } })
     </div>
   )
 }
-
-export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const post = await getPostBySlug(params.slug)

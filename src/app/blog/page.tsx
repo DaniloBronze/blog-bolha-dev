@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { FaCalendar, FaTags } from 'react-icons/fa'
 import Sidebar from '@/components/Sidebar'
 
-export const dynamic = 'force-dynamic'
+/** ISR: revalida a cada 60s. Listagem de posts pode ser cacheada. */
+export const revalidate = 60
 
 export const metadata = {
   title: 'Blog',
