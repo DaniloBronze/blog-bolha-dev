@@ -1,41 +1,72 @@
-import { getPostBySlug, getAllPosts, getAllTags, getPostSlugsForSitemap } from '@/lib/posts'
+import {
+  getPostByCategorySlugAndPostSlug,
+  getPostsByCategorySlug,
+  getAllTags,
+} from '@/lib/posts'
 import { FaCalendar, FaTags, FaClock } from 'react-icons/fa'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Sidebar from '@/components/Sidebar'
 import Link from 'next/link'
-import LikeButton from './LikeButton'
+import LikeButton from '@/app/blog/[slug]/LikeButton'
 import { CtaBox } from '@/components/CtaBox'
 import { AdSense } from '@/components/AdSense'
 
-/** ISR: revalida a cada 1 min. Revalidação imediata ao editar post via revalidatePath na API. */
 export const revalidate = 60
 
-/** Pré-renderiza todos os posts no build; novos posts são gerados on-demand e depois cacheados. */
-export async function generateStaticParams() {
-  const posts = await getPostSlugsForSitemap()
-  return posts.map((p) => ({ slug: p.slug }))
+interface Props {
+  params: { slug: string; postSlug: string }
 }
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const post = await getPostBySlug(params.slug)
-  const recentPosts = await getAllPosts()
-  const tags = await getAllTags()
+export async function generateStaticParams() {
+  const { getPostSlugsForSitemap } = await import('@/lib/posts')
+  const posts = await getPostSlugsForSitemap()
+  const withCategory = posts.filter((p) => p.categorySlug)
+  return withCategory.map((p) => ({
+    slug: p.categorySlug!,
+    postSlug: p.slug,
+  }))
+}
 
-  if (!post) {
-    notFound()
-  }
+export default async function CategoriaPostPage({ params }: Props) {
+  const { slug: categorySlug, postSlug } = params
 
-  if (post.categorySlug) {
-    redirect(`/categoria/${post.categorySlug}/${post.slug}`)
-  }
+  const [post, { posts: categoryPosts }, tags] = await Promise.all([
+    getPostByCategorySlugAndPostSlug(categorySlug, postSlug),
+    getPostsByCategorySlug(categorySlug, { page: 1, limit: 500 }),
+    getAllTags(),
+  ])
 
-  const currentIndex = recentPosts.findIndex(p => p.slug === post.slug)
+  if (!post) notFound()
+
+  const currentIndex = categoryPosts.findIndex((p) => p.slug === post.slug)
   const hasPrevious = currentIndex > 0
-  const hasNext = currentIndex < recentPosts.length - 1
+  const hasNext = currentIndex >= 0 && currentIndex < categoryPosts.length - 1
+  const prevPost = hasPrevious ? categoryPosts[currentIndex - 1] : null
+  const nextPost = hasNext ? categoryPosts[currentIndex + 1] : null
 
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://blog.pratuaqui.com.br'
-  const postUrl = `${SITE_URL}/blog/${post.slug}`
+  const postUrl = `${SITE_URL}/categoria/${categorySlug}/${post.slug}`
+
+  const breadcrumbList = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: post.categoryName ?? categorySlug,
+        item: `${SITE_URL}/categoria/${categorySlug}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: post.title,
+        item: postUrl,
+      },
+    ],
+  }
 
   const articleJsonLd = {
     '@context': 'https://schema.org',
@@ -55,23 +86,49 @@ export default async function BlogPost({ params }: { params: { slug: string } })
     <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8">
       <script
         type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbList) }}
+      />
+      <script
+        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
+
+      {/* Breadcrumb visual */}
+      <nav className="mb-4 text-sm text-white/70" aria-label="Breadcrumb">
+        <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <li>
+            <Link href="/" className="hover:text-white transition-colors">
+              Início
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li>
+            <Link
+              href={`/categoria/${categorySlug}`}
+              className="hover:text-white transition-colors"
+            >
+              {post.categoryName ?? categorySlug}
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li className="text-white truncate max-w-[180px] sm:max-w-none" aria-current="page">
+            {post.title}
+          </li>
+        </ol>
+      </nav>
+
       <div className="flex flex-col lg:flex-row lg:gap-8">
         <main className="flex-1">
           <article className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/10">
             <div className="p-4 sm:p-6 lg:p-8">
-              {/* Anúncio — topo do post */}
               <div className="mb-6 flex justify-center">
                 <AdSense adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP ?? ''} className="min-w-0" />
               </div>
 
-              {/* Título */}
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight mb-6">
                 {post.title}
               </h1>
 
-              {/* Metadados do post - responsivo */}
               <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center text-sm text-white/70 mb-6 sm:mb-8 gap-3 sm:gap-4">
                 <span className="flex items-center">
                   <FaCalendar className="mr-2 flex-shrink-0" />
@@ -86,6 +143,14 @@ export default async function BlogPost({ params }: { params: { slug: string } })
                   <FaClock className="mr-2 flex-shrink-0" />
                   {post.readingTime.text}
                 </span>
+                {post.categoryName && (
+                  <Link
+                    href={`/categoria/${categorySlug}`}
+                    className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-2 py-1 rounded text-xs font-medium transition-colors"
+                  >
+                    {post.categoryName}
+                  </Link>
+                )}
                 {post.tags.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                     <FaTags className="mr-1 flex-shrink-0" />
@@ -102,23 +167,19 @@ export default async function BlogPost({ params }: { params: { slug: string } })
                 )}
               </div>
 
-              {/* Conteúdo do post - responsivo */}
-              <div 
+              <div
                 className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-white prose-headings:text-white prose-a:text-blue-300 prose-strong:text-white prose-code:text-pink-300 prose-pre:bg-black/20 prose-blockquote:border-blue-400"
-                dangerouslySetInnerHTML={{ __html: post.content }} 
+                dangerouslySetInnerHTML={{ __html: post.content }}
               />
 
-              {/* Anúncio — após o conteúdo */}
               <div className="mt-8 flex justify-center">
                 <AdSense adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ''} className="min-w-0" />
               </div>
 
-              {/* CTA PraTuAqui — converte leitor em lead (use CtaBox com props customizadas por post quando tiver o campo no admin) */}
               <div className="mt-8">
                 <CtaBox />
               </div>
 
-              {/* Seção de like destacada */}
               <div className="mt-8 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl border border-blue-400/20">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="text-center sm:text-left">
@@ -131,11 +192,10 @@ export default async function BlogPost({ params }: { params: { slug: string } })
             </div>
           </article>
 
-          {/* Navegação entre posts - responsivo */}
           <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
-            {hasPrevious && (
+            {prevPost && (
               <Link
-                href={`/blog/${recentPosts[currentIndex - 1].slug}`}
+                href={`/categoria/${categorySlug}/${prevPost.slug}`}
                 className="group bg-white/10 hover:bg-white/20 text-white/90 px-4 sm:px-6 py-3 sm:py-4 rounded-lg transition-colors flex-1 sm:max-w-[48%]"
               >
                 <div className="flex items-center gap-2">
@@ -143,22 +203,22 @@ export default async function BlogPost({ params }: { params: { slug: string } })
                   <div className="min-w-0 flex-1">
                     <small className="text-xs text-white/70">Post anterior</small>
                     <p className="font-medium text-sm group-hover:text-blue-300 transition-colors truncate">
-                      {recentPosts[currentIndex - 1].title}
+                      {prevPost.title}
                     </p>
                   </div>
                 </div>
               </Link>
             )}
-            {hasNext && (
+            {nextPost && (
               <Link
-                href={`/blog/${recentPosts[currentIndex + 1].slug}`}
+                href={`/categoria/${categorySlug}/${nextPost.slug}`}
                 className="group bg-white/10 hover:bg-white/20 text-white/90 px-4 sm:px-6 py-3 sm:py-4 rounded-lg transition-colors flex-1 sm:max-w-[48%] text-right"
               >
                 <div className="flex items-center gap-2 justify-end">
                   <div className="min-w-0 flex-1 text-right">
                     <small className="text-xs text-white/70">Próximo post</small>
                     <p className="font-medium text-sm group-hover:text-blue-300 transition-colors truncate">
-                      {recentPosts[currentIndex + 1].title}
+                      {nextPost.title}
                     </p>
                   </div>
                   <span className="text-lg flex-shrink-0">→</span>
@@ -168,8 +228,14 @@ export default async function BlogPost({ params }: { params: { slug: string } })
           </div>
         </main>
 
-        <Sidebar 
-          recentPosts={recentPosts.filter(p => p.slug !== post.slug).slice(0, 5)} 
+        <Sidebar
+          recentPosts={categoryPosts
+            .filter((p) => p.slug !== post.slug)
+            .slice(0, 5)
+            .map((p) => ({
+              ...p,
+              href: `/categoria/${categorySlug}/${p.slug}`,
+            }))}
           tags={tags}
         />
       </div>
@@ -179,16 +245,11 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://blog.pratuaqui.com.br'
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug)
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const post = await getPostByCategorySlugAndPostSlug(params.slug, params.postSlug)
+  if (!post) return { title: 'Post não encontrado' }
 
-  if (!post) {
-    return {
-      title: 'Post não encontrado',
-    }
-  }
-
-  const postUrl = `${SITE_URL}/blog/${params.slug}`
+  const postUrl = `${SITE_URL}/categoria/${params.slug}/${params.postSlug}`
 
   return {
     title: post.title,

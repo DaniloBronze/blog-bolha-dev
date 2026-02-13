@@ -13,6 +13,8 @@ interface Post {
     minutes: number
     text: string
   }
+  /** Se definido, usa este link em vez de /blog/[slug]. Ex.: /categoria/seo/post-slug */
+  href?: string
 }
 
 interface SidebarProps {
@@ -27,12 +29,12 @@ export default function Sidebar({ recentPosts, tags, currentTag, maisLidasPosts 
   return (
     <aside className="w-full lg:w-72 lg:ml-8 mt-6 lg:mt-0 flex flex-col gap-4 sm:gap-6">
       {maisLidasPosts && maisLidasPosts.length > 0 && (
-        <div className="bg-amber-400 text-neutral-900 rounded-lg p-4 sm:p-5 border border-amber-500/50">
+        <div className="bg-amber-400 text-neutral-900 rounded-xl p-4 sm:p-5 border border-amber-500/50 shadow-lg shadow-amber-900/20">
           <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide mb-3">Mais lidas</h2>
           <ul className="space-y-3">
             {maisLidasPosts.map((post, i) => (
               <li key={post.slug}>
-                <Link href={`/blog/${post.slug}`} className="flex gap-3 items-start group">
+                <Link href={post.href ?? `/blog/${post.slug}`} className="flex gap-3 items-start group">
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
                     {i + 1}
                   </span>
@@ -63,13 +65,13 @@ export default function Sidebar({ recentPosts, tags, currentTag, maisLidasPosts 
         </div>
       )}
 
-      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 sm:p-6 border border-white/10">
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/10 shadow-lg shadow-black/10">
         <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Posts Recentes</h2>
         <div className="space-y-3 sm:space-y-4">
           {recentPosts.map((post) => (
             <div key={post.slug}>
               <Link
-                href={`/blog/${post.slug}`}
+                href={post.href ?? `/blog/${post.slug}`}
                 className="block hover:bg-white/10 rounded-lg p-2 sm:p-3 transition-colors"
               >
                 <h3 className="text-white/90 font-medium hover:text-blue-300 transition-colors text-sm sm:text-base leading-tight">
@@ -90,7 +92,7 @@ export default function Sidebar({ recentPosts, tags, currentTag, maisLidasPosts 
       </div>
 
       {tags && tags.length > 0 && (
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 sm:p-6 border border-white/10">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/10 shadow-lg shadow-black/10">
           <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Tags</h2>
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (

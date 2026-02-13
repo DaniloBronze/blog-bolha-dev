@@ -2,7 +2,7 @@
 import { usePathname, redirect } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { FaNewspaper, FaComments, FaChartBar, FaSignOutAlt } from 'react-icons/fa'
+import { FaNewspaper, FaComments, FaChartBar, FaSignOutAlt, FaFolder } from 'react-icons/fa'
 import { signOut } from 'next-auth/react'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -35,6 +35,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               >
                 <FaNewspaper className="mr-2" />
                 Posts
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/admin/categorias"
+                className="flex items-center p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+              >
+                <FaFolder className="mr-2" />
+                Categorias
               </Link>
             </li>
             <li>

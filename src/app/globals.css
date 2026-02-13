@@ -163,7 +163,7 @@ footer.bg-gray-800 {
 .prose img {
   border-radius: 0.75rem !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-  max-width: min(100%, 36rem) !important; /* no máximo ~576px, no mobile 100% da coluna */
+  /* max-width: min(100%, 36rem) !important; no máximo ~576px, no mobile 100% da coluna */
   height: auto !important;
   display: block !important;
   margin: 1.5rem auto !important;

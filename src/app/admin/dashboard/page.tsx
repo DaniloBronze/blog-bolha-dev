@@ -12,6 +12,7 @@ interface Post {
   createdAt: string
   comments: { id: string }[]
   likes: { id: string }[]
+  category?: { id: number; name: string; slug: string } | null
 }
 
 export default function DashboardPage() {
@@ -70,6 +71,7 @@ export default function DashboardPage() {
             <thead>
               <tr className="border-b border-white/10">
                 <th className="px-6 py-4 text-left text-sm font-medium text-white/90">Título</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-white/90">Categoria</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-white/90">Status</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-white/90">Data</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-white/90">Interações</th>
@@ -79,13 +81,13 @@ export default function DashboardPage() {
             <tbody className="divide-y divide-white/10">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-white/70">
+                  <td colSpan={6} className="px-6 py-4 text-center text-white/70">
                     Carregando posts...
                   </td>
                 </tr>
               ) : posts.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-white/70">
+                  <td colSpan={6} className="px-6 py-4 text-center text-white/70">
                     Nenhum post encontrado
                   </td>
                 </tr>
@@ -94,11 +96,14 @@ export default function DashboardPage() {
                   <tr key={post.id} className="hover:bg-white/5">
                     <td className="px-6 py-4">
                       <Link 
-                        href={`/blog/${post.slug}`} 
+                        href={post.category ? `/categoria/${post.category.slug}/${post.slug}` : `/blog/${post.slug}`}
                         className="text-white hover:text-blue-300 transition-colors"
                       >
                         {post.title}
                       </Link>
+                    </td>
+                    <td className="px-6 py-4 text-white/70">
+                      {post.category ? post.category.name : '—'}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-sm font-medium ${post.published ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>

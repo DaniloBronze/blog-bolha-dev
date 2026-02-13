@@ -24,21 +24,26 @@ export default async function Home() {
           {featuredPost && (
             <section className="mb-8">
               <Link
-                href={`/blog/${featuredPost.slug}`}
-                className="block group rounded-xl overflow-hidden border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+                href={featuredPost.categorySlug ? `/categoria/${featuredPost.categorySlug}/${featuredPost.slug}` : `/blog/${featuredPost.slug}`}
+                className="block group rounded-2xl overflow-hidden border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 shadow-xl shadow-black/20 hover:shadow-2xl hover:shadow-blue-900/10"
               >
                 <div className="relative h-56 sm:h-72 flex flex-col justify-end p-4 sm:p-6 bg-gradient-to-br from-blue-900/90 via-indigo-900/80 to-slate-900/90">
                   {featuredPost.coverImage && (
                     <img
                       src={featuredPost.coverImage}
                       alt=""
-                      className="absolute inset-0 w-full h-full object-cover object-center opacity-70"
+                      className="absolute inset-0 w-full h-full object-cover object-center opacity-70 group-hover:scale-105 transition-transform duration-500"
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                  <span className="absolute top-3 left-3 bg-amber-500 text-neutral-900 text-xs font-bold uppercase px-2 py-1 rounded z-10">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
+                  <span className="absolute top-3 left-3 bg-amber-500 text-neutral-900 text-xs font-bold uppercase px-2.5 py-1 rounded-lg z-10 shadow-lg">
                     Destaque
                   </span>
+                  {featuredPost.categoryName && (
+                    <span className="absolute top-3 right-3 bg-white/10 backdrop-blur text-white/90 text-xs font-medium px-2.5 py-1 rounded-lg z-10">
+                      {featuredPost.categoryName}
+                    </span>
+                  )}
                   <h1 className="relative z-10 text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-tight group-hover:text-blue-300 transition-colors line-clamp-2">
                     {featuredPost.title}
                   </h1>
@@ -53,7 +58,7 @@ export default async function Home() {
 
           {/* Mais recentes */}
           <section>
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-5 flex items-center gap-2">
               <span className="w-8 h-0.5 bg-amber-400 rounded" />
               Mais recentes
             </h2>
@@ -71,6 +76,7 @@ export default async function Home() {
                   tagColorIndex={i % 3}
                   horizontal
                   badge={i === 0 ? 'Agora mesmo' : undefined}
+                  href={post.categorySlug ? `/categoria/${post.categorySlug}/${post.slug}` : undefined}
                 />
               ))}
             </div>

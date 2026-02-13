@@ -10,6 +10,13 @@ import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 import MDEditor from '@uiw/react-md-editor'
 
+interface Category {
+  id: number
+  name: string
+  slug: string
+  description: string | null
+}
+
 interface Post {
   title: string
   description: string
@@ -18,6 +25,7 @@ interface Post {
   published: boolean
   publishedAt: Date | null
   tags: string[]
+  categoryId: number | null
 }
 
 export default function EditPost({ params }: { params: { id: string } }) {
@@ -29,10 +37,25 @@ export default function EditPost({ params }: { params: { id: string } }) {
     coverImage: null,
     published: false,
     publishedAt: null,
-    tags: []
+    tags: [],
+    categoryId: null,
   })
+  const [categories, setCategories] = useState<Category[]>([])
 
   const imagesInContent = useMemo(() => extractImageUrlsFromContent(post.content), [post.content])
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/categories')
+        if (res.ok) {
+          const data = await res.json()
+          setCategories(data)
+        }
+      } catch (_) {}
+    }
+    fetchCategories()
+  }, [])
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -46,7 +69,8 @@ export default function EditPost({ params }: { params: { id: string } }) {
           ...data,
           tags: typeof data.tags === 'string' ? JSON.parse(data.tags) : data.tags || [],
           publishedAt: data.publishedAt ? new Date(data.publishedAt) : null,
-          coverImage: data.coverImage || null
+          coverImage: data.coverImage || null,
+          categoryId: data.categoryId ?? data.category?.id ?? null,
         })
       } catch (error) {
         alertsMsg('error', 'Erro ao carregar post')
@@ -142,6 +166,26 @@ export default function EditPost({ params }: { params: { id: string } }) {
             onChange={(e) => setPost({ ...post, publishedAt: new Date(e.target.value) })}
             className="w-full bg-white/10 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="categoryId" className="block text-sm font-medium">
+            Categoria <span className="text-red-400">*</span>
+          </label>
+          <select
+            id="categoryId"
+            value={post.categoryId ?? ''}
+            onChange={(e) => setPost({ ...post, categoryId: e.target.value ? Number(e.target.value) : null })}
+            className="w-full bg-white/10 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            required
+          >
+            <option value="">Selecione uma categoria</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="space-y-2">

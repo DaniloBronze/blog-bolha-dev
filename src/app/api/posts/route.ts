@@ -12,8 +12,9 @@ export async function GET() {
       include: {
         comments: true,
         likes: true,
+        category: true,
       },
-    })
+    } as Prisma.PostFindManyArgs)
 
     return NextResponse.json(posts)
   } catch (error) {
@@ -28,24 +29,30 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const json = await request.json()
-    const { title, content, description, tags, slug, published, publishedAt, coverImage } = json
+    const { title, content, description, tags, slug, published, publishedAt, coverImage, categoryId } = json
 
     const post = await prisma.post.create({
       data: {
         title,
         content,
         description,
-        tags: JSON.stringify(tags),
+        tags: JSON.stringify(tags ?? []),
         slug,
         published,
         publishedAt: publishedAt ? new Date(publishedAt) : null,
         coverImage: coverImage || null,
+        categoryId: categoryId != null ? Number(categoryId) : null,
       } as Prisma.PostCreateInput,
     })
 
     revalidatePath('/')
     revalidatePath('/blog')
+    revalidatePath('/categorias')
     revalidatePath(`/blog/${post.slug}`)
+    const postWithCat = post as { categoryId?: number | null }
+    const cat = postWithCat.categoryId ? await (prisma as unknown as { category: { findUnique: (args: object) => Promise<{ slug: string } | null> } }).category.findUnique({ where: { id: postWithCat.categoryId }, select: { slug: true } }) : null
+    if (cat) revalidatePath(`/categoria/${cat.slug}`)
+    if (cat) revalidatePath(`/categoria/${cat.slug}/${post.slug}`)
 
     return NextResponse.json(post)
   } catch (error) {

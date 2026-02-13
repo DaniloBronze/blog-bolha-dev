@@ -11,6 +11,13 @@ const MDEditor = dynamic(
   { ssr: false }
 )
 
+interface Category {
+  id: number
+  name: string
+  slug: string
+  description: string | null
+}
+
 interface PostFormData {
   title: string
   description: string
@@ -19,6 +26,7 @@ interface PostFormData {
   tags: string[]
   published: boolean
   publishedAt: string
+  categoryId: number | null
 }
 
 export default function PostEditorPage({
@@ -38,11 +46,23 @@ export default function PostEditorPage({
     tags: [],
     published: false,
     publishedAt: new Date().toISOString().split('T')[0],
+    categoryId: null,
   })
+  const [categories, setCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/categories')
+        if (res.ok) setCategories(await res.json())
+      } catch (_) {}
+    }
+    fetchCategories()
+  }, [])
 
   useEffect(() => {
     if (isEdit) {
-      // TODO: Fetch post data if editing
+      // Edit is handled by /admin/posts/edit/[id]
     }
   }, [isEdit])
 
@@ -62,6 +82,7 @@ export default function PostEditorPage({
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-+|-+$/g, ''),
+          categoryId: formData.categoryId,
         }),
       })
 
@@ -108,6 +129,27 @@ export default function PostEditorPage({
                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
+            </div>
+
+            {/* Categoria */}
+            <div>
+              <label htmlFor="categoryId" className="block text-sm font-medium text-white/90 mb-1">
+                Categoria <span className="text-red-400">*</span>
+              </label>
+              <select
+                id="categoryId"
+                value={formData.categoryId ?? ''}
+                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value ? Number(e.target.value) : null })}
+                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              >
+                <option value="">Selecione uma categoria</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Description */}

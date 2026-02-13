@@ -32,6 +32,8 @@ export interface PostCardProps {
   horizontal?: boolean
   /** Badge opcional, ex: "Agora mesmo" */
   badge?: string
+  /** Link do post. Se não informado, usa /blog/[slug]. Use ex: /categoria/seo/post-slug para URL hierárquica. */
+  href?: string
 }
 
 export default function PostCard({
@@ -45,11 +47,13 @@ export default function PostCard({
   tagColorIndex = 0,
   horizontal = false,
   badge,
+  href,
 }: PostCardProps) {
   const tagColor = getTagColor(tagColorIndex)
   const firstTag = tags[0]
+  const linkHref = href ?? `/blog/${slug}`
 
-  const thumbClass = `relative flex-shrink-0 overflow-hidden ${horizontal ? 'w-full h-40 rounded-t-lg sm:w-44 sm:h-44 sm:rounded-t-none sm:rounded-l-xl' : 'w-full h-40 rounded-lg'} ${!coverImage ? placeholderGradient(slug) : 'bg-neutral-800'}`
+  const thumbClass = `relative flex-shrink-0 overflow-hidden ${horizontal ? 'w-full h-40 rounded-t-xl sm:w-44 sm:h-44 sm:rounded-t-none sm:rounded-l-xl' : 'w-full h-40 rounded-t-xl'} ${!coverImage ? placeholderGradient(slug) : 'bg-neutral-800'}`
 
   const content = (
     <>
@@ -58,7 +62,7 @@ export default function PostCard({
           <img
             src={coverImage}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover object-center"
+            className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
           />
         ) : null}
         {badge && (
@@ -90,8 +94,8 @@ export default function PostCard({
 
   if (horizontal) {
     return (
-      <article className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/10 hover:bg-white/15 transition-colors flex flex-col sm:flex-row">
-        <Link href={`/blog/${slug}`} className="contents">
+      <article className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/10 hover:bg-white/15 hover:border-white/20 transition-all duration-200 shadow-lg shadow-black/10 flex flex-col sm:flex-row group">
+        <Link href={linkHref} className="contents">
           {content}
         </Link>
       </article>
@@ -99,8 +103,8 @@ export default function PostCard({
   }
 
   return (
-    <article className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/10 hover:bg-white/15 transition-colors">
-      <Link href={`/blog/${slug}`} className="block">
+    <article className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/10 hover:bg-white/15 hover:border-white/20 transition-all duration-200 shadow-lg shadow-black/10 group">
+      <Link href={linkHref} className="block">
         {content}
       </Link>
     </article>

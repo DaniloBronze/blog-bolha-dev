@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String
+  slug        String  @unique
+  description String?
+  posts       Post[]
+
+  @@index([slug])
+}
+
 model Post {
   slug        String    @unique
   title       String
@@ -18,12 +28,14 @@ model Post {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   id          Int       @id @default(autoincrement())
-  /// * URL da imagem principal/capa do post (lista, destaque, cards).
   coverImage  String?
+  categoryId  Int?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   comments    Comment[]
   likes       Like[]
 
   @@index([publishedAt])
+  @@index([categoryId])
 }
 
 model Comment {

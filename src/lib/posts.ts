@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { remark } from 'remark'
 import html from 'remark-html'
@@ -21,6 +22,10 @@ export interface Post {
     minutes: number
     text: string
   }
+  /** Slug da categoria (para URL hierárquica e breadcrumb). */
+  categorySlug?: string | null
+  /** Nome da categoria (para exibição). */
+  categoryName?: string | null
 }
 
 export function normalizeTag(tag: string): string {
@@ -34,20 +39,26 @@ export function normalizeTag(tag: string): string {
     .replace(/^-+|-+$/g, ''); // Remove hífens no início e no final
 }
 
-/** Retorna apenas slug e datas para sitemap (consulta leve, sem processar conteúdo). */
+/** Retorna slug, categoria e datas para sitemap (consulta leve). */
 export async function getPostSlugsForSitemap(): Promise<
-  { slug: string; publishedAt: Date; updatedAt: Date }[]
+  { slug: string; categorySlug: string | null; publishedAt: Date; updatedAt: Date }[]
 > {
   try {
     const posts = await prisma.post.findMany({
       where: { published: true },
-      select: { slug: true, publishedAt: true, updatedAt: true },
+      select: {
+        slug: true,
+        publishedAt: true,
+        updatedAt: true,
+        category: { select: { slug: true } },
+      },
       orderBy: { publishedAt: 'desc' },
-    })
-    return posts
+    } as Prisma.PostFindManyArgs)
+    return (posts as { slug: string | null; publishedAt: Date | null; updatedAt: Date; category?: { slug: string } | null }[])
       .filter((p) => p.slug)
       .map((p) => ({
         slug: p.slug!,
+        categorySlug: p.category?.slug ?? null,
         publishedAt: p.publishedAt || new Date(),
         updatedAt: p.updatedAt || new Date(),
       }))
@@ -57,18 +68,48 @@ export async function getPostSlugsForSitemap(): Promise<
   }
 }
 
+const postInclude = {
+  category: true,
+  _count: { select: { likes: true } },
+} as Prisma.PostInclude
+
+function mapPrismaPostToPost(post: {
+  slug: string | null
+  title: string
+  content: string
+  description: string | null
+  tags: string
+  publishedAt: Date | null
+  updatedAt?: Date | null
+  id: number
+  coverImage?: string | null
+  category?: { slug: string; name: string } | null
+  _count?: { likes: number }
+}, contentHtml: string, showUpdated: boolean, updatedAtStr: string | null): Post {
+  const publishedAt = post.publishedAt?.toISOString() || ''
+  return {
+    slug: post.slug || '',
+    title: post.title || '',
+    id: Number(post.id),
+    date: publishedAt,
+    updatedAt: showUpdated ? updatedAtStr : null,
+    description: post.description || '',
+    tags: JSON.parse(post.tags || '[]'),
+    content: contentHtml,
+    likes: post._count?.likes || 0,
+    coverImage: post.coverImage || null,
+    readingTime: calculateReadingTime(contentHtml),
+    categorySlug: post.category?.slug ?? null,
+    categoryName: post.category?.name ?? null,
+  }
+}
+
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
     const post = await prisma.post.findUnique({
       where: { slug },
-      include: {
-        _count: {
-          select: {
-            likes: true, // Contando os likes associados ao post
-          },
-        },
-      },
-    })
+      include: postInclude,
+    } as Prisma.PostFindUniqueArgs)
 
     if (!post) return null
 
@@ -77,53 +118,65 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
       .use(remarkGfm)
       .process(post.content)
     const contentHtml = processedContent.toString()
-
-    const readingTime = calculateReadingTime(contentHtml)
-
-    const publishedAt = post.publishedAt?.toISOString() || ''
     const updatedAt = (post as { updatedAt?: Date | null }).updatedAt
+    const publishedAt = post.publishedAt?.toISOString() || ''
     const updatedAtStr = updatedAt ? new Date(updatedAt).toISOString() : null
-    const showUpdated = updatedAtStr && updatedAtStr !== publishedAt
+    const showUpdated = !!updatedAtStr && updatedAtStr !== publishedAt
 
-    return {
-      slug: post.slug || '',
-      title: post.title || '',
-      id: Number(post.id),
-      date: publishedAt,
-      updatedAt: showUpdated ? updatedAtStr : null,
-      description: post.description || '',
-      tags: JSON.parse(post.tags || '[]'),
-      content: contentHtml || '',
-      likes: post._count?.likes || 0,
-      coverImage: (post as { coverImage?: string | null }).coverImage || null,
-      readingTime,
-    }
+    return mapPrismaPostToPost(post as any, contentHtml, showUpdated, updatedAtStr)
   } catch (error) {
     console.error('Erro ao buscar post:', error)
     return null
   }
 }
 
+/** Busca post pela URL hierárquica: /categoria/[categorySlug]/[postSlug]. */
+export async function getPostByCategorySlugAndPostSlug(
+  categorySlug: string,
+  postSlug: string
+): Promise<Post | null> {
+  try {
+    const post = await prisma.post.findFirst({
+      where: {
+        slug: postSlug,
+        published: true,
+        category: { slug: categorySlug },
+      },
+      include: postInclude,
+    } as Prisma.PostFindFirstArgs)
+    if (!post) return null
+
+    const processedContent = await remark()
+      .use(html)
+      .use(remarkGfm)
+      .process(post.content)
+    const contentHtml = processedContent.toString()
+    const updatedAt = (post as { updatedAt?: Date | null }).updatedAt
+    const publishedAt = post.publishedAt?.toISOString() || ''
+    const updatedAtStr = updatedAt ? new Date(updatedAt).toISOString() : null
+    const showUpdated = !!updatedAtStr && updatedAtStr !== publishedAt
+
+    return mapPrismaPostToPost(post as any, contentHtml, showUpdated, updatedAtStr)
+  } catch (error) {
+    console.error('Erro ao buscar post por categoria e slug:', error)
+    return null
+  }
+}
 
 export async function getAllPosts(): Promise<Post[]> {
   try {
     const posts = await prisma.post.findMany({
-      orderBy: {
-        publishedAt: 'desc',
-      },
-      where: {
-        published: true
-      }
-    })
+      orderBy: { publishedAt: 'desc' },
+      where: { published: true },
+      include: { category: true },
+    } as Prisma.PostFindManyArgs)
 
-    return posts.map((post: any) => {
-      // Processa markdown de forma síncrona para ser mais rápido
+    return (posts as any[]).map((post: any) => {
       const processedContent = remark()
         .use(html)
         .use(remarkGfm)
         .processSync(post.content)
       const contentHtml = processedContent.toString()
-
       return {
         slug: post.slug || '',
         title: post.title || '',
@@ -136,6 +189,8 @@ export async function getAllPosts(): Promise<Post[]> {
         likes: 0,
         coverImage: post.coverImage || null,
         readingTime: calculateReadingTime(contentHtml),
+        categorySlug: post.category?.slug ?? null,
+        categoryName: post.category?.name ?? null,
       }
     })
   } catch (error) {
@@ -151,9 +206,9 @@ export async function getMostLikedPosts(count: number = 3): Promise<Post[]> {
       where: { published: true },
       orderBy: { likes: { _count: 'desc' } },
       take: count,
-      include: { _count: { select: { likes: true } } },
-    })
-    return posts.map((post: any) => {
+      include: { _count: { select: { likes: true } }, category: true },
+    } as Prisma.PostFindManyArgs)
+    return (posts as any[]).map((post: any) => {
       const processedContent = remark()
         .use(html)
         .use(remarkGfm)
@@ -171,6 +226,8 @@ export async function getMostLikedPosts(count: number = 3): Promise<Post[]> {
         likes: post._count?.likes || 0,
         coverImage: post.coverImage || null,
         readingTime: calculateReadingTime(contentHtml),
+        categorySlug: post.category?.slug ?? null,
+        categoryName: post.category?.name ?? null,
       }
     })
   } catch (error) {
@@ -179,26 +236,32 @@ export async function getMostLikedPosts(count: number = 3): Promise<Post[]> {
   }
 }
 
-export async function getRecentPosts(count: number = 5): Promise<Post[]> {
+/** Busca posts por termo (título, descrição, conteúdo ou tags). Retorna lista no mesmo formato para listagem. */
+export async function searchPosts(query: string): Promise<Post[]> {
+  const q = query?.trim()
+  if (!q || q.length < 2) return []
+
   try {
     const posts = await prisma.post.findMany({
-      orderBy: {
-        publishedAt: 'desc',
-      },
-      take: count,
       where: {
-        published: true
-      }
-    })
+        published: true,
+        OR: [
+          { title: { contains: q, mode: 'insensitive' } },
+          { description: { contains: q, mode: 'insensitive' } },
+          { content: { contains: q, mode: 'insensitive' } },
+          { tags: { contains: q, mode: 'insensitive' } },
+        ],
+      },
+      orderBy: { publishedAt: 'desc' },
+      include: { category: true },
+    } as Prisma.PostFindManyArgs)
 
-    return posts.map((post: any) => {
-      // Processa markdown de forma síncrona para ser mais rápido
+    return (posts as any[]).map((post: any) => {
       const processedContent = remark()
         .use(html)
         .use(remarkGfm)
         .processSync(post.content)
       const contentHtml = processedContent.toString()
-
       return {
         slug: post.slug || '',
         title: post.title || '',
@@ -211,11 +274,102 @@ export async function getRecentPosts(count: number = 5): Promise<Post[]> {
         likes: 0,
         coverImage: post.coverImage || null,
         readingTime: calculateReadingTime(contentHtml),
+        categorySlug: post.category?.slug ?? null,
+        categoryName: post.category?.name ?? null,
+      }
+    })
+  } catch (error) {
+    console.error('Erro ao buscar posts:', error)
+    return []
+  }
+}
+
+export async function getRecentPosts(count: number = 5): Promise<Post[]> {
+  try {
+    const posts = await prisma.post.findMany({
+      orderBy: { publishedAt: 'desc' },
+      take: count,
+      where: { published: true },
+      include: { category: true },
+    } as Prisma.PostFindManyArgs)
+
+    return (posts as any[]).map((post: any) => {
+      const processedContent = remark()
+        .use(html)
+        .use(remarkGfm)
+        .processSync(post.content)
+      const contentHtml = processedContent.toString()
+      return {
+        slug: post.slug || '',
+        title: post.title || '',
+        id: Number(post.id),
+        date: post.publishedAt?.toISOString() || '',
+        updatedAt: null,
+        description: post.description || '',
+        tags: JSON.parse(post.tags || '[]'),
+        content: contentHtml || '',
+        likes: 0,
+        coverImage: post.coverImage || null,
+        readingTime: calculateReadingTime(contentHtml),
+        categorySlug: post.category?.slug ?? null,
+        categoryName: post.category?.name ?? null,
       }
     })
   } catch (error) {
     console.error('Erro ao buscar posts recentes:', error)
     return []
+  }
+}
+
+/** Lista posts de uma categoria com paginação. */
+export async function getPostsByCategorySlug(
+  categorySlug: string,
+  options?: { page?: number; limit?: number }
+): Promise<{ posts: Post[]; total: number }> {
+  const page = Math.max(1, options?.page ?? 1)
+  const limit = Math.min(50, Math.max(1, options?.limit ?? 12))
+  const skip = (page - 1) * limit
+
+  try {
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where: { published: true, category: { slug: categorySlug } },
+        orderBy: { publishedAt: 'desc' },
+        skip,
+        take: limit,
+        include: { category: true },
+      } as Prisma.PostFindManyArgs),
+      prisma.post.count({
+        where: { published: true, category: { slug: categorySlug } },
+      } as Prisma.PostCountArgs),
+    ])
+
+    const mapped = posts.map((post: any) => {
+      const processedContent = remark()
+        .use(html)
+        .use(remarkGfm)
+        .processSync(post.content)
+      const contentHtml = processedContent.toString()
+      return {
+        slug: post.slug || '',
+        title: post.title || '',
+        id: Number(post.id),
+        date: post.publishedAt?.toISOString() || '',
+        updatedAt: null,
+        description: post.description || '',
+        tags: JSON.parse(post.tags || '[]'),
+        content: contentHtml || '',
+        likes: 0,
+        coverImage: post.coverImage || null,
+        readingTime: calculateReadingTime(contentHtml),
+        categorySlug: post.category?.slug ?? null,
+        categoryName: post.category?.name ?? null,
+      }
+    })
+    return { posts: mapped, total }
+  } catch (error) {
+    console.error('Erro ao buscar posts por categoria:', error)
+    return { posts: [], total: 0 }
   }
 }
 
@@ -244,27 +398,21 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
 
   try {
     const posts = await prisma.post.findMany({
-      include: {
-        _count: {
-          select: {
-            likes: true,
-          },
-        },
-      },
-    })
+      where: { published: true },
+      include: { _count: { select: { likes: true } }, category: true },
+    } as Prisma.PostFindManyArgs)
 
-    const filteredPosts = posts.filter((post: any) => {
+    const filteredPosts = (posts as any[]).filter((post: any) => {
       const tagsArray = JSON.parse(post.tags || '[]')
       return tagsArray.map(normalizeTag).includes(normalizedSearchTag)
     })
 
-    return Promise.all(filteredPosts.map(async (post: any) => {
-      const processedContent = await remark()
+    return filteredPosts.map((post: any) => {
+      const processedContent = remark()
         .use(html)
         .use(remarkGfm)
-        .process(post.content)
+        .processSync(post.content)
       const contentHtml = processedContent.toString()
-
       return {
         slug: post.slug || '',
         title: post.title || '',
@@ -277,8 +425,10 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
         likes: post._count?.likes || 0,
         coverImage: post.coverImage || null,
         readingTime: calculateReadingTime(contentHtml),
+        categorySlug: post.category?.slug ?? null,
+        categoryName: post.category?.name ?? null,
       }
-    }))
+    })
   } catch (error) {
     console.error('Erro ao buscar posts por tag:', error)
     return []

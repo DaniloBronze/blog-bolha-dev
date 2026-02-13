@@ -2,6 +2,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from '@/providers/SessionProvider'
 import Navigation from '@/components/Navigation'
+import { getAllCategories } from '@/lib/categories'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -49,7 +50,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 }
 
-const jsonLd = {
+const jsonLdWebSite = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Bolha Dev',
@@ -62,11 +63,21 @@ const jsonLd = {
   },
 }
 
-export default function RootLayout({
+const jsonLdOrganization = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Bolha Dev',
+  url: SITE_URL,
+  description: 'Blog sobre desenvolvimento, programação e tecnologia.',
+}
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const categories = await getAllCategories()
+
   return (
     <html lang="pt-BR">
       <head>
@@ -81,10 +92,14 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen bg-gray-900`}>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrganization) }}
         />
         <SessionProvider>
-          <Navigation />
+          <Navigation categories={categories} />
             {children}
         </SessionProvider>
       </body>
