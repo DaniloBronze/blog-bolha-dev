@@ -38,7 +38,7 @@ interface SidebarProps {
 
 export default function Sidebar({ recentPosts, tags, currentTag, maisLidasPosts }: SidebarProps) {
   return (
-    <aside className="w-full lg:w-72 lg:ml-8 mt-6 lg:mt-0 flex flex-col gap-4 sm:gap-6">
+    <aside className="w-full lg:w-56 xl:w-64 mt-6 lg:mt-0 flex flex-col gap-4 sm:gap-6 lg:shrink-0">
       {maisLidasPosts && maisLidasPosts.length > 0 && (
         <div className="bg-amber-400 text-neutral-900 rounded-xl p-4 sm:p-5 border border-amber-500/50 shadow-lg shadow-amber-900/20">
           <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide mb-3">Mais lidas</h2>
@@ -51,11 +51,11 @@ export default function Sidebar({ recentPosts, tags, currentTag, maisLidasPosts 
                   </span>
                   <div className="min-w-0 flex-1">
                     {post.tags[0] && (
-                      <span className="text-xs font-semibold uppercase text-neutral-600">
+                      <span className="text-xs font-semibold uppercase text-neutral-600 block truncate">
                         {post.tags[0]}
                       </span>
                     )}
-                    <p className="text-sm font-medium text-neutral-900 group-hover:underline line-clamp-2">
+                    <p className="text-sm font-medium text-neutral-900 group-hover:underline line-clamp-2 break-words hyphens-auto">
                       {post.title}
                     </p>
                   </div>
@@ -83,9 +83,9 @@ export default function Sidebar({ recentPosts, tags, currentTag, maisLidasPosts 
             <div key={post.slug}>
               <Link
                 href={post.href ?? `/blog/${post.slug}`}
-                className="block hover:bg-white/10 rounded-lg p-2 sm:p-3 transition-colors"
+                className="block hover:bg-white/10 rounded-lg p-2 sm:p-3 transition-colors group"
               >
-                <h3 className="text-white/90 font-medium hover:text-blue-300 transition-colors text-sm sm:text-base leading-tight">
+                <h3 className="text-white/90 font-medium group-hover:text-blue-300 transition-colors text-sm sm:text-base leading-tight break-words hyphens-auto">
                   {post.title}
                 </h3>
                 <div className="flex items-center text-xs sm:text-sm text-white/60 mt-1">
@@ -104,9 +104,9 @@ export default function Sidebar({ recentPosts, tags, currentTag, maisLidasPosts 
 
       {tags && tags.length > 0 && (
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/10 shadow-lg shadow-black/10">
-          <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Tags</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Tags Populares</h2>
           <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
+            {tags.slice(0, 12).map((tag) => (
               <Link
                 key={tag}
                 href={`/blog/tag/${tag}`}
@@ -120,6 +120,19 @@ export default function Sidebar({ recentPosts, tags, currentTag, maisLidasPosts 
               </Link>
             ))}
           </div>
+          {tags.length > 12 && (
+            <div className="mt-4 text-center">
+              <Link
+                href="/tags"
+                className="inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                Ver todas as tags
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </aside>

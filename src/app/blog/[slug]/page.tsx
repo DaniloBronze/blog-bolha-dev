@@ -57,8 +57,8 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
-      <div className="flex flex-col lg:flex-row lg:gap-8">
-        <main className="flex-1">
+      <div className="flex flex-col lg:flex-row lg:gap-16 lg:items-start">
+        <main className="flex-1 min-w-0 lg:max-w-[calc(100%-18rem)] xl:max-w-[calc(100%-20rem)]">
           <article className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/10">
             <div className="p-4 sm:p-6 lg:p-8">
               {/* Anúncio — topo do post */}
@@ -102,9 +102,10 @@ export default async function BlogPost({ params }: { params: { slug: string } })
                 )}
               </div>
 
-              {/* Conteúdo do post - responsivo */}
+              {/* Conteúdo do post - responsivo com quebra de palavras longas */}
               <div 
-                className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-white prose-headings:text-white prose-a:text-blue-300 prose-strong:text-white prose-code:text-pink-300 prose-pre:bg-black/20 prose-blockquote:border-blue-400"
+                className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-white prose-headings:text-white prose-a:text-blue-300 prose-strong:text-white prose-code:text-pink-300 prose-code:break-words prose-pre:bg-black/20 prose-pre:overflow-x-auto prose-blockquote:border-blue-400 break-words"
+                style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
                 dangerouslySetInnerHTML={{ __html: post.content }} 
               />
 

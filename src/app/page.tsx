@@ -18,8 +18,8 @@ export default async function Home() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
-      <div className="flex flex-col lg:flex-row lg:gap-8">
-        <main className="flex-1 min-w-0">
+      <div className="flex flex-col lg:flex-row lg:gap-16 lg:items-start">
+        <main className="flex-1 min-w-0 lg:max-w-[calc(100%-18rem)] xl:max-w-[calc(100%-20rem)]">
           {/* Hero – post em destaque (estilo Ei NERD) */}
           {featuredPost && (
             <section className="mb-8">

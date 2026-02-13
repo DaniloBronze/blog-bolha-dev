@@ -169,3 +169,25 @@ footer.bg-gray-800 {
   margin: 1.5rem auto !important;
 }
 
+/* Quebra de palavras longas e URLs para evitar overflow em conteúdo */
+.prose a {
+  word-wrap: break-word !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  hyphens: auto !important;
+}
+
+.prose code {
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+}
+
+.prose pre {
+  overflow-x: auto !important;
+  max-width: 100% !important;
+}
+
+.prose pre code {
+  word-break: normal !important;
+}
+

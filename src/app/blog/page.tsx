@@ -21,8 +21,8 @@ export default async function Blog() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row lg:gap-8">
-        <main className="flex-1">
+      <div className="flex flex-col lg:flex-row lg:gap-16 lg:items-start">
+        <main className="flex-1 min-w-0 lg:max-w-[calc(100%-18rem)] xl:max-w-[calc(100%-20rem)]">
           <h1 className="text-3xl sm:text-4xl font-bold text-white mb-6 flex items-center gap-2">
             <span className="w-10 h-0.5 bg-blue-400 rounded" />
             Blog
