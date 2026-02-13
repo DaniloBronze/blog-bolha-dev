@@ -2,6 +2,7 @@ import {
   getPostByCategorySlugAndPostSlug,
   getPostsByCategorySlug,
   getAllTags,
+  normalizeTag,
 } from '@/lib/posts'
 import { FaCalendar, FaTags, FaClock } from 'react-icons/fa'
 import { notFound } from 'next/navigation'
@@ -157,7 +158,7 @@ export default async function CategoriaPostPage({ params }: Props) {
                     {post.tags.map((tag) => (
                       <Link
                         key={tag}
-                        href={`/blog/tag/${tag}`}
+                        href={`/blog/tag/${normalizeTag(tag)}`}
                         className="bg-white/10 hover:bg-white/20 text-white/90 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm transition-colors"
                       >
                         {tag}

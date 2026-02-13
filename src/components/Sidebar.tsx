@@ -4,6 +4,17 @@ import Link from 'next/link'
 import { FaCalendar, FaClock } from 'react-icons/fa'
 import { AdSense } from '@/components/AdSense'
 
+/**
+ * Converte tag normalizada (URL) para formato de exibição
+ * Ex: "vender-na-shopee" → "Vender na Shopee"
+ */
+function denormalizeTag(normalizedTag: string): string {
+  return normalizedTag
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 interface Post {
   slug: string
   title: string
@@ -105,7 +116,7 @@ export default function Sidebar({ recentPosts, tags, currentTag, maisLidasPosts 
                     : 'bg-white/10 text-white/80 hover:bg-white/20'
                 } transition-colors`}
               >
-                {tag}
+                {denormalizeTag(tag)}
               </Link>
             ))}
           </div>

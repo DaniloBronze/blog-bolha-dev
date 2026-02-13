@@ -1,4 +1,4 @@
-import { getPostBySlug, getAllPosts, getAllTags, getPostSlugsForSitemap } from '@/lib/posts'
+import { getPostBySlug, getAllPosts, getAllTags, getPostSlugsForSitemap, normalizeTag } from '@/lib/posts'
 import { FaCalendar, FaTags, FaClock } from 'react-icons/fa'
 import { notFound, redirect } from 'next/navigation'
 import { Metadata } from 'next'
@@ -92,7 +92,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
                     {post.tags.map((tag) => (
                       <Link
                         key={tag}
-                        href={`/blog/tag/${tag}`}
+                        href={`/blog/tag/${normalizeTag(tag)}`}
                         className="bg-white/10 hover:bg-white/20 text-white/90 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm transition-colors"
                       >
                         {tag}

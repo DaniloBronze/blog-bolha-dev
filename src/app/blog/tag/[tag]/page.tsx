@@ -14,19 +14,33 @@ export async function generateStaticParams() {
   return tags.map((tag) => ({ tag }))
 }
 
+/**
+ * Converte tag normalizada (URL) para formato de exibição
+ * Ex: "vender-na-shopee" → "Vender na Shopee"
+ */
+function denormalizeTag(normalizedTag: string): string {
+  return normalizedTag
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 export default async function TagPage({ params }: Props) {
-  const { tag } = params
+  const { tag } = params // tag vem normalizada da URL (ex: "vender-na-shopee")
+  
   const [posts, allTags, maisLidasPosts] = await Promise.all([
-    getPostsByTag(tag),
+    getPostsByTag(tag), // busca posts com tag normalizada
     getAllTags(),
     getMostLikedPosts(3),
   ])
 
+  // Valida se tag existe
   if (!allTags.includes(tag)) {
     notFound()
   }
 
   const maisLidas = maisLidasPosts.length > 0 ? maisLidasPosts : posts.slice(0, 3)
+  const displayTag = denormalizeTag(tag) // para exibir bonito no título
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -34,7 +48,7 @@ export default async function TagPage({ params }: Props) {
         <main className="flex-1">
           <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 flex items-center gap-2">
             <span className="w-10 h-0.5 bg-emerald-400 rounded" />
-            {tag}
+            {displayTag}
           </h1>
           <p className="text-white/70 text-sm mb-6">Posts com esta tag</p>
 
@@ -74,9 +88,10 @@ export default async function TagPage({ params }: Props) {
 
 export async function generateMetadata({ params }: Props) {
   const { tag } = params
+  const displayTag = denormalizeTag(tag)
 
   return {
-    title: `Posts com a tag "${tag}" | Blog`,
-    description: `Lista de posts relacionados à tag ${tag}`,
+    title: `Posts com a tag "${displayTag}" | Blog`,
+    description: `Lista de posts relacionados à tag ${displayTag}`,
   }
 }

@@ -234,7 +234,7 @@ export default function PostEditorPage({
                 <input
                   type="text"
                   id="tags"
-                  placeholder="Separe as tags com vírgula"
+                  placeholder="Ex: React, Next.js, Vender na Shopee"
                   value={formData.tags.join(', ')}
                   onChange={(e) => {
                     const tagsValue = e.target.value
@@ -246,7 +246,12 @@ export default function PostEditorPage({
                   }}
                   onBlur={(e) => {
                     const tagsValue = e.target.value
-                    const tagsArray = tagsValue ? tagsValue.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : []
+                    // Salva tags com espaços (para SEO/keywords), apenas remove vazias
+                    const tagsArray = tagsValue 
+                      ? tagsValue.split(',')
+                          .map(tag => tag.trim())
+                          .filter(tag => tag.length > 0)
+                      : []
                     setFormData({
                       ...formData,
                       tags: tagsArray
