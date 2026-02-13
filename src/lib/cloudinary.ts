@@ -6,6 +6,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Re-exporta helper de otimização (vive em utils para uso client+server)
+export { optimizeCloudinaryImage } from '@/utils/cloudinary-optimizer'
+
 export async function uploadImage(file: File) {
   try {
     // Converte o arquivo para base64

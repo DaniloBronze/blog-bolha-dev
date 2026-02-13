@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Scroll suave ao clicar em âncoras */
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -189,5 +194,45 @@ footer.bg-gray-800 {
 
 .prose pre code {
   word-break: normal !important;
+}
+
+/* ===== ESTILOS PARA NAVEGAÇÃO POR ÂNCORAS ===== */
+
+/* Links de cabeçalho (âncoras automáticas) - remove decoração dos links automáticos */
+.prose h1 a,
+.prose h2 a,
+.prose h3 a,
+.prose h4 a,
+.prose h5 a,
+.prose h6 a {
+  color: inherit !important;
+  text-decoration: none !important;
+  position: relative;
+  display: inline-block;
+}
+
+/* Ícone de link (#) ao passar o mouse nos cabeçalhos */
+.prose h1:hover a::before,
+.prose h2:hover a::before,
+.prose h3:hover a::before,
+.prose h4:hover a::before,
+.prose h5:hover a::before,
+.prose h6:hover a::before {
+  content: '#';
+  position: absolute;
+  left: -1.2em;
+  color: rgba(96, 165, 250, 0.5); /* blue-400 com transparência */
+  font-weight: normal;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+/* Offset para âncoras (compensa scroll para não ficar colado no topo) */
+.prose h1[id],
+.prose h2[id],
+.prose h3[id],
+.prose h4[id],
+.prose h5[id],
+.prose h6[id] {
+  scroll-margin-top: 6rem; /* 96px - espaço do header + padding */
 }
 

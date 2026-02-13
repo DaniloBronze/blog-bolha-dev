@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { optimizeCloudinaryImage } from '@/utils/cloudinary-optimizer'
 
 const TAG_COLORS = [
   'text-emerald-400 border-emerald-400/50', // verde
@@ -53,15 +54,21 @@ export default function PostCard({
   const firstTag = tags[0]
   const linkHref = href ?? `/blog/${slug}`
 
-  const thumbClass = `relative flex-shrink-0 overflow-hidden ${horizontal ? 'w-full h-40 rounded-t-xl sm:w-44 sm:h-44 sm:rounded-t-none sm:rounded-l-xl' : 'w-full h-40 rounded-t-xl'} ${!coverImage ? placeholderGradient(slug) : 'bg-neutral-800'}`
+  // Otimiza imagem do Cloudinary para tamanho adequado ao card
+  // Cards têm ~378px no mobile, ~400px no desktop
+  // Usa 600px de largura para cobrir telas retina (2x DPI)
+  const optimizedCoverImage = optimizeCloudinaryImage(coverImage, 600, 350)
+
+  const thumbClass = `relative flex-shrink-0 overflow-hidden ${horizontal ? 'w-full h-40 rounded-t-xl sm:w-44 sm:h-44 sm:rounded-t-none sm:rounded-l-xl' : 'w-full h-40 rounded-t-xl'} ${!optimizedCoverImage ? placeholderGradient(slug) : 'bg-neutral-800'}`
 
   const content = (
     <>
       <div className={thumbClass}>
-        {coverImage ? (
+        {optimizedCoverImage ? (
           <img
-            src={coverImage}
+            src={optimizedCoverImage}
             alt=""
+            loading="lazy"
             className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
           />
         ) : null}

@@ -2,52 +2,43 @@
  * Calcula o tempo estimado de leitura baseado no conteúdo
  * @param content - Conteúdo HTML ou texto do post
  * @returns Objeto com tempo em minutos e texto formatado
+ * 
+ * Regras:
+ * - 200 palavras por minuto (padrão de leitura)
+ * - Remove HTML antes de contar
+ * - Conta palavras reais (sem espaços vazios)
+ * - Arredonda sempre para cima
+ * - Mínimo de 1 minuto
+ * - Adiciona 12 segundos (0.2 min) por imagem
  */
 export function calculateReadingTime(content: string): {
   minutes: number
   text: string
 } {
+  // Remove todas as tags HTML para contar apenas texto puro
   const textContent = content.replace(/<[^>]*>/g, '')
   
-  // Conta palavras (considerando espaços e quebras de linha)
+  // Conta palavras reais (split por espaços e filtra vazios)
   const words = textContent.trim().split(/\s+/).filter(word => word.length > 0)
   const wordCount = words.length
   
-  // Análise adicional do conteúdo
+  // Conta imagens no HTML original
   const imageCount = (content.match(/<img[^>]*>/gi) || []).length
-  const codeBlockCount = (content.match(/<pre[^>]*>[\s\S]*?<\/pre>/gi) || []).length
-  const headingCount = (content.match(/<h[1-6][^>]*>/gi) || []).length
   
-  // Velocidade de leitura mais realista: 150 palavras por minuto
-  // (200 é muito otimista para leitura de conteúdo técnico)
-  let wordsPerMinute = 150
+  // Calcula tempo base: 200 palavras por minuto
+  const WORDS_PER_MINUTE = 200
+  const readingMinutes = wordCount / WORDS_PER_MINUTE
   
-  // Ajustes baseados no tipo de conteúdo
-  if (codeBlockCount > 0) {
-    // Código requer mais tempo para entender
-    wordsPerMinute = 120
-  }
+  // Adiciona 12 segundos (0.2 minutos) por imagem
+  const imageTime = imageCount * 0.2
   
-  if (headingCount > 5) {
-    // Muitos títulos indicam conteúdo estruturado que pode ser lido mais rápido
-    wordsPerMinute = Math.min(wordsPerMinute + 20, 180)
-  }
+  // Soma tudo e arredonda PARA CIMA
+  let minutes = Math.ceil(readingMinutes + imageTime)
   
-  // Tempo baseado em palavras
-  let minutes = Math.ceil(wordCount / wordsPerMinute)
-  
-  // Adiciona tempo para imagens (30 segundos por imagem)
-  const imageTime = Math.ceil(imageCount * 0.5)
-  minutes += imageTime
-  
-  // Adiciona tempo para blocos de código (1 minuto por bloco)
-  const codeTime = codeBlockCount
-  minutes += codeTime
-  
-  // Garante um tempo mínimo de 1 minuto
+  // Garante mínimo de 1 minuto
   minutes = Math.max(minutes, 1)
   
-  // Formata o texto baseado no tempo
+  // Formata o texto de retorno
   let text: string
   if (minutes === 1) {
     text = '1 min de leitura'

@@ -1,8 +1,11 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { remark } from 'remark'
-import html from 'remark-html'
 import remarkGfm from 'remark-gfm'
+import remarkRehype from 'remark-rehype'
+import rehypeSlug from 'rehype-slug'
+import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import rehypeStringify from 'rehype-stringify'
 import { calculateReadingTime } from '@/utils/reading-time'
 
 export interface Post {
@@ -37,6 +40,29 @@ export function normalizeTag(tag: string): string {
     .replace(/\s+/g, '-') // Substitui espaços por hífens
     .replace(/-+/g, '-') // Remove múltiplos hífens consecutivos
     .replace(/^-+|-+$/g, ''); // Remove hífens no início e no final
+}
+
+/**
+ * Processa conteúdo Markdown para HTML com suporte a:
+ * - GitHub Flavored Markdown (tabelas, listas de tarefas, etc)
+ * - IDs automáticos nos cabeçalhos (h1-h6) para navegação por âncoras
+ * - Links automáticos nos cabeçalhos
+ * 
+ * @param markdown - Conteúdo em Markdown
+ * @returns HTML processado com IDs nos cabeçalhos
+ */
+export function processMarkdown(markdown: string): string {
+  const processedContent = remark()
+    .use(remarkGfm) // GitHub Flavored Markdown
+    .use(remarkRehype) // Converte remark -> rehype (markdown -> HTML AST)
+    .use(rehypeSlug) // Adiciona IDs aos cabeçalhos (h1-h6)
+    .use(rehypeAutolinkHeadings, { // Adiciona links automáticos nos cabeçalhos
+      behavior: 'wrap', // Envolve o texto do cabeçalho com o link
+    })
+    .use(rehypeStringify) // Converte HTML AST -> string HTML
+    .processSync(markdown)
+  
+  return processedContent.toString()
 }
 
 /** Retorna slug, categoria e datas para sitemap (consulta leve). */
@@ -113,11 +139,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 
     if (!post) return null
 
-    const processedContent = await remark()
-      .use(html)
-      .use(remarkGfm)
-      .process(post.content)
-    const contentHtml = processedContent.toString()
+    const contentHtml = processMarkdown(post.content)
     const updatedAt = (post as { updatedAt?: Date | null }).updatedAt
     const publishedAt = post.publishedAt?.toISOString() || ''
     const updatedAtStr = updatedAt ? new Date(updatedAt).toISOString() : null
@@ -146,11 +168,7 @@ export async function getPostByCategorySlugAndPostSlug(
     } as Prisma.PostFindFirstArgs)
     if (!post) return null
 
-    const processedContent = await remark()
-      .use(html)
-      .use(remarkGfm)
-      .process(post.content)
-    const contentHtml = processedContent.toString()
+    const contentHtml = processMarkdown(post.content)
     const updatedAt = (post as { updatedAt?: Date | null }).updatedAt
     const publishedAt = post.publishedAt?.toISOString() || ''
     const updatedAtStr = updatedAt ? new Date(updatedAt).toISOString() : null
@@ -172,11 +190,7 @@ export async function getAllPosts(): Promise<Post[]> {
     } as Prisma.PostFindManyArgs)
 
     return (posts as any[]).map((post: any) => {
-      const processedContent = remark()
-        .use(html)
-        .use(remarkGfm)
-        .processSync(post.content)
-      const contentHtml = processedContent.toString()
+      const contentHtml = processMarkdown(post.content)
       return {
         slug: post.slug || '',
         title: post.title || '',
@@ -209,11 +223,7 @@ export async function getMostLikedPosts(count: number = 3): Promise<Post[]> {
       include: { _count: { select: { likes: true } }, category: true },
     } as Prisma.PostFindManyArgs)
     return (posts as any[]).map((post: any) => {
-      const processedContent = remark()
-        .use(html)
-        .use(remarkGfm)
-        .processSync(post.content)
-      const contentHtml = processedContent.toString()
+      const contentHtml = processMarkdown(post.content)
       return {
         slug: post.slug || '',
         title: post.title || '',
@@ -257,11 +267,7 @@ export async function searchPosts(query: string): Promise<Post[]> {
     } as Prisma.PostFindManyArgs)
 
     return (posts as any[]).map((post: any) => {
-      const processedContent = remark()
-        .use(html)
-        .use(remarkGfm)
-        .processSync(post.content)
-      const contentHtml = processedContent.toString()
+      const contentHtml = processMarkdown(post.content)
       return {
         slug: post.slug || '',
         title: post.title || '',
@@ -294,11 +300,7 @@ export async function getRecentPosts(count: number = 5): Promise<Post[]> {
     } as Prisma.PostFindManyArgs)
 
     return (posts as any[]).map((post: any) => {
-      const processedContent = remark()
-        .use(html)
-        .use(remarkGfm)
-        .processSync(post.content)
-      const contentHtml = processedContent.toString()
+      const contentHtml = processMarkdown(post.content)
       return {
         slug: post.slug || '',
         title: post.title || '',
@@ -345,11 +347,7 @@ export async function getPostsByCategorySlug(
     ])
 
     const mapped = posts.map((post: any) => {
-      const processedContent = remark()
-        .use(html)
-        .use(remarkGfm)
-        .processSync(post.content)
-      const contentHtml = processedContent.toString()
+      const contentHtml = processMarkdown(post.content)
       return {
         slug: post.slug || '',
         title: post.title || '',
@@ -408,11 +406,7 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
     })
 
     return filteredPosts.map((post: any) => {
-      const processedContent = remark()
-        .use(html)
-        .use(remarkGfm)
-        .processSync(post.content)
-      const contentHtml = processedContent.toString()
+      const contentHtml = processMarkdown(post.content)
       return {
         slug: post.slug || '',
         title: post.title || '',

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Sidebar from '@/components/Sidebar'
 import PostCard from '@/components/PostCard'
 import { getRecentPosts, getAllTags, getMostLikedPosts } from '@/lib/posts'
+import { optimizeCloudinaryImage } from '@/utils/cloudinary-optimizer'
 
 export const revalidate = 60
 
@@ -30,8 +31,9 @@ export default async function Home() {
                 <div className="relative h-56 sm:h-72 flex flex-col justify-end p-4 sm:p-6 bg-gradient-to-br from-blue-900/90 via-indigo-900/80 to-slate-900/90">
                   {featuredPost.coverImage && (
                     <img
-                      src={featuredPost.coverImage}
+                      src={optimizeCloudinaryImage(featuredPost.coverImage, 1200, 600) || featuredPost.coverImage}
                       alt=""
+                      loading="eager"
                       className="absolute inset-0 w-full h-full object-cover object-center opacity-70 group-hover:scale-105 transition-transform duration-500"
                     />
                   )}
